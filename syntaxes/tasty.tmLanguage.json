@@ -1,0 +1,726 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Tasty",
+  "scopeName": "source.tasty",
+  "injectionSelector": "L:source.tsx -comment -string, L:source.ts -comment -string, L:meta.embedded.expression.tsx -comment -string",
+  "patterns": [
+    {
+      "include": "#tasty-styles"
+    }
+  ],
+  "repository": {
+    "tasty-styles": {
+      "patterns": [
+        {
+          "name": "meta.tasty-styles.inline.tsx",
+          "begin": "\\{\\{?",
+          "end": "\\}\\}?",
+          "contentName": "meta.embedded.block.tasty",
+          "patterns": [
+            { "include": "#tasty-object-property" }
+          ]
+        },
+        {
+          "name": "meta.tasty-styles.tsx",
+          "begin": "\\b(styles|\\w*[Ss]tyles)\\s*[:=]\\s*\\{\\{?",
+          "end": "\\}\\}?",
+          "contentName": "meta.embedded.block.tasty",
+          "beginCaptures": {
+            "1": {
+              "name": "entity.name.tag.tsx"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#tasty-object-property"
+            },
+            {
+              "include": "#tasty-nested-object"
+            },
+            {
+              "match": ",",
+              "name": "punctuation.separator.comma.tsx"
+            },
+            {
+              "match": "\\s+",
+              "name": "source.tsx"
+            }
+          ]
+        }
+      ]
+    },
+    "tasty-object-property": {
+      "patterns": [
+        {
+          "comment": "Pure attribute selector keys: '[data-theme=\"dark\"]'",
+          "name": "meta.object-property.attribute-selector.tasty",
+          "begin": "(['\"`])(\\[)([a-zA-Z_][a-zA-Z0-9_-]*)(\\*?[~|^$]?=)(\"[^\"]*\"|'[^']*')(\\])(\\1)\\s*:",
+          "end": "(?=,|\\})",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.tsx"
+            },
+            "2": {
+              "name": "punctuation.definition.attribute-selector.begin.tasty"
+            },
+            "3": {
+              "name": "entity.other.attribute-name.tasty"
+            },
+            "4": {
+              "name": "keyword.operator.attribute-selector.tasty"
+            },
+            "5": {
+              "name": "string.quoted.attribute-value.tasty"
+            },
+            "6": {
+              "name": "punctuation.definition.attribute-selector.end.tasty"
+            },
+            "7": {
+              "name": "punctuation.definition.string.end.tsx"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#tasty-property-value"
+            }
+          ]
+        },
+        {
+          "comment": "Pure simple attribute selector keys: '[disabled]'",
+          "name": "meta.object-property.simple-attribute.tasty",
+          "begin": "(['\"`])(\\[)([a-zA-Z_][a-zA-Z0-9_-]*)(\\])(\\1)\\s*:",
+          "end": "(?=,|\\})",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.tsx"
+            },
+            "2": {
+              "name": "punctuation.definition.attribute-selector.begin.tasty"
+            },
+            "3": {
+              "name": "entity.other.attribute-name.tasty"
+            },
+            "4": {
+              "name": "punctuation.definition.attribute-selector.end.tasty"
+            },
+            "5": {
+              "name": "punctuation.definition.string.end.tsx"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#tasty-property-value"
+            }
+          ]
+        },
+        {
+          "comment": "Complex state expression keys with attribute selectors",
+          "name": "meta.object-property.tasty",
+          "begin": "(['\"`])",
+          "end": "\\1\\s*:",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.tsx"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.tsx"
+            }
+          },
+          "contentName": "string.quoted.key.tasty",
+          "patterns": [
+            {
+              "include": "#custom-properties"
+            },
+            {
+              "include": "#state-selectors"
+            },
+            {
+              "include": "#state-logic-operators"
+            }
+          ]
+        },
+        {
+          "comment": "Property value continuation",
+          "name": "meta.object-property.value.tasty",
+          "begin": "(?<=:)",
+          "end": "(?=,|\\})",
+          "patterns": [
+            {
+              "include": "#tasty-property-value"
+            }
+          ]
+        },
+        {
+          "name": "meta.object-property.unquoted.tasty",
+          "begin": "([a-zA-Z_$][a-zA-Z0-9_$-]*)\\s*:",
+          "end": "(?=,|\\})",
+          "beginCaptures": {
+            "1": {
+              "name": "support.type.property-name.tasty"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#tasty-property-value"
+            }
+          ]
+        }
+      ]
+    },
+    "tasty-property-value": {
+      "patterns": [
+        {
+          "include": "#tasty-nested-object"
+        },
+        {
+          "include": "#tasty-array-value"
+        },
+        {
+          "include": "#tasty-string-value"
+        },
+        {
+          "match": "\\s+",
+          "name": "source.tsx"
+        }
+      ]
+    },
+    "tasty-nested-object": {
+      "patterns": [
+        {
+          "name": "meta.tasty-nested-object.tsx",
+          "begin": "\\{",
+          "end": "\\}",
+          "patterns": [
+            {
+              "include": "#tasty-object-property"
+            },
+            {
+              "include": "#tasty-nested-object"
+            },
+            {
+              "match": ",",
+              "name": "punctuation.separator.comma.tsx"
+            },
+            {
+              "match": "\\s+",
+              "name": "source.tsx"
+            }
+          ]
+        }
+      ]
+    },
+    "tasty-array-value": {
+      "patterns": [
+        {
+          "name": "meta.tasty-array.tsx",
+          "begin": "\\[",
+          "end": "\\]",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.array.begin.tsx"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.array.end.tsx"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#tasty-string-value"
+            },
+            {
+              "include": "#tasty-nested-object"
+            },
+            {
+              "match": ",",
+              "name": "punctuation.separator.comma.tsx"
+            },
+            {
+              "match": "\\s+",
+              "name": "source.tsx"
+            }
+          ]
+        }
+      ]
+    },
+    "tasty-string-value": {
+      "patterns": [
+        {
+          "begin": "(['\"`])",
+          "end": "\\1",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.tsx"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.definition.string.end.tsx"
+            }
+          },
+          "contentName": "meta.embedded.block.tasty",
+          "patterns": [
+            {
+              "include": "#tasty-syntax"
+            }
+          ]
+        }
+      ]
+    },
+    "tasty-syntax": {
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#custom-properties"
+        },
+        {
+          "include": "#hash-colors"
+        },
+        {
+          "include": "#color-functions"
+        },
+        {
+          "include": "#auto-calc"
+        },
+        {
+          "include": "#value-keywords"
+        },
+        {
+          "include": "#state-selectors"
+        },
+        {
+          "include": "#state-logic-operators"
+        },
+        {
+          "include": "#functions"
+        },
+        {
+          "include": "#urls"
+        },
+        {
+          "include": "#css-with-units"
+        },
+        {
+          "include": "#custom-units"
+        },
+        {
+          "include": "#bare-numbers"
+        },
+        {
+          "include": "#strings"
+        },
+        {
+          "include": "#tasty-properties"
+        },
+        {
+          "include": "#operators"
+        }
+      ]
+    },
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.block.css",
+          "begin": "/\\*",
+          "end": "\\*/",
+          "captures": {
+            "0": {
+              "name": "punctuation.definition.comment.css"
+            }
+          }
+        }
+      ]
+    },
+    "custom-properties": {
+      "patterns": [
+        {
+          "name": "meta.function-call.custom-property.tasty",
+          "begin": "\\$\\(([a-zA-Z_][a-zA-Z0-9_-]*)(\\s*,\\s*)",
+          "end": "\\)",
+          "beginCaptures": {
+            "0": {
+              "name": "variable.other.custom-property.function.tasty"
+            },
+            "1": {
+              "name": "entity.name.custom-property.tasty"
+            },
+            "2": {
+              "name": "punctuation.separator.comma.tasty"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.parameters.end.tasty"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#tasty-syntax"
+            }
+          ]
+        },
+        {
+          "name": "variable.other.custom-property.tasty",
+          "match": "\\$[a-zA-Z_][a-zA-Z0-9_-]*",
+          "comment": "Custom properties as single tokens: $local-spacing, $theme-color, etc."
+        }
+      ]
+    },
+    "hash-colors": {
+      "patterns": [
+        {
+          "name": "constant.other.color.tasty-token",
+          "match": "#([a-zA-Z][a-zA-Z0-9_-]*(?:\\.[0-9]+)?)",
+          "captures": {
+            "0": {
+              "name": "support.constant.color.tasty-token"
+            }
+          },
+          "comment": "Tasty color tokens like #primary, #surface, #primary.5"
+        },
+        {
+          "name": "constant.other.color.hex",
+          "match": "#([0-9a-fA-F]{3,8})\\b",
+          "captures": {
+            "0": {
+              "name": "constant.other.color.rgb-value"
+            }
+          },
+          "comment": "Standard hex colors"
+        }
+      ]
+    },
+    "color-functions": {
+      "patterns": [
+        {
+          "name": "meta.function-call.css",
+          "begin": "\\b(rgb|rgba|hsl|hsla|hwb|lab|lch|oklab|oklch|color|device-cmyk|gray|color-mix|color-contrast)\\s*(\\()",
+          "end": "\\)",
+          "beginCaptures": {
+            "1": {
+              "name": "support.function.misc.css"
+            },
+            "2": {
+              "name": "punctuation.section.function.begin.css"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.function.end.css"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#tasty-syntax"
+            }
+          ]
+        }
+      ]
+    },
+    "custom-units": {
+      "patterns": [
+        {
+          "name": "constant.numeric.custom-unit.tasty",
+          "match": "(?<!\\w)[+-]?(?:\\d*\\.\\d+|\\d+)([a-z][a-z0-9]*)(?!\\w)",
+          "comment": "Dynamic custom units: {number}{unitName} where unitName starts with letter (2x, 1.5r, .5x, -.75custom, etc.)"
+        }
+      ]
+    },
+    "auto-calc": {
+      "patterns": [
+        {
+          "name": "meta.function-call.css",
+          "begin": "(?<!\\w|\\)|url)\\s*(\\()",
+          "end": "\\)",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.section.function.begin.css"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.function.end.css"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#tasty-syntax"
+            }
+          ]
+        }
+      ]
+    },
+    "value-keywords": {
+      "patterns": [
+        {
+          "name": "support.constant.property-value.tasty",
+          "match": "\\b(none|auto|max-content|min-content|fit-content|stretch|true|false)\\b"
+        },
+        {
+          "name": "support.constant.property-value.tasty-directional",
+          "match": "\\b(top|right|bottom|left|center)\\b"
+        },
+        {
+          "name": "support.constant.property-value.tasty-preset",
+          "match": "\\b(h[1-6]|t[1-4]m?|p[1-4]|m[1-3]|c[1-2]|tag)\\b"
+        },
+        {
+          "name": "support.constant.property-value.tasty-shape",
+          "match": "\\b(round|ellipse|leaf|backleaf)\\b"
+        }
+      ]
+    },
+    "state-selectors": {
+      "patterns": [
+        {
+          "name": "support.constant.property-value.tasty-state",
+          "match": "\\b[a-z][a-z0-9-]*\\b",
+          "comment": "Custom state identifiers (kebab-case)"
+        },
+        {
+          "name": "entity.name.tag.css",
+          "match": ":[a-z][a-z0-9-]*(?:\\([^)]+\\))?",
+          "comment": "CSS pseudo-classes with optional parameters"
+        },
+        {
+          "name": "entity.name.tag.class.css",
+          "match": "\\.[a-z][a-z0-9-]+",
+          "comment": "CSS class selectors"
+        },
+        {
+          "name": "meta.attribute-selector.tasty",
+          "begin": "\\[",
+          "end": "\\]",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.attribute-selector.begin.tasty"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.attribute-selector.end.tasty"
+            }
+          },
+          "patterns": [
+            {
+              "comment": "Attribute with double quoted value: [data-theme=\"dark\"]",
+              "match": "([a-zA-Z_][a-zA-Z0-9_-]*)(\\*?[~|^$]?=)(\")([^\"]*)(\")",
+              "captures": {
+                "1": {
+                  "name": "entity.other.attribute-name.tasty"
+                },
+                "2": {
+                  "name": "keyword.operator.attribute-selector.tasty"
+                },
+                "3": {
+                  "name": "punctuation.definition.string.begin.tasty"
+                },
+                "4": {
+                  "name": "string.quoted.attribute-value.tasty"
+                },
+                "5": {
+                  "name": "punctuation.definition.string.end.tasty"
+                }
+              }
+            },
+            {
+              "comment": "Attribute with single quoted value: [data-theme='dark']",
+              "match": "([a-zA-Z_][a-zA-Z0-9_-]*)(\\*?[~|^$]?=)(')([^']*)(')",
+              "captures": {
+                "1": {
+                  "name": "entity.other.attribute-name.tasty"
+                },
+                "2": {
+                  "name": "keyword.operator.attribute-selector.tasty"
+                },
+                "3": {
+                  "name": "punctuation.definition.string.begin.tasty"
+                },
+                "4": {
+                  "name": "string.quoted.attribute-value.tasty"
+                },
+                "5": {
+                  "name": "punctuation.definition.string.end.tasty"
+                }
+              }
+            },
+            {
+              "comment": "Attribute with unquoted value: [data-theme=dark]",
+              "match": "([a-zA-Z_][a-zA-Z0-9_-]*)(\\*?[~|^$]?=)([a-zA-Z0-9_-]+)",
+              "captures": {
+                "1": {
+                  "name": "entity.other.attribute-name.tasty"
+                },
+                "2": {
+                  "name": "keyword.operator.attribute-selector.tasty"
+                },
+                "3": {
+                  "name": "string.unquoted.attribute-value.tasty"
+                }
+              }
+            },
+            {
+              "comment": "Simple attribute name only: [disabled]",
+              "match": "([a-zA-Z_][a-zA-Z0-9_-]*)",
+              "captures": {
+                "1": {
+                  "name": "entity.other.attribute-name.tasty"
+                }
+              }
+            }
+          ],
+          "comment": "Enhanced CSS attribute selectors with proper syntax breakdown"
+        }
+      ]
+    },
+    "functions": {
+      "patterns": [
+        {
+          "name": "meta.function-call.css",
+          "begin": "\\b([a-zA-Z_][a-zA-Z0-9_-]*)\\s*(\\()",
+          "end": "\\)",
+          "beginCaptures": {
+            "1": {
+              "name": "support.function.misc.css"
+            },
+            "2": {
+              "name": "punctuation.section.function.begin.css"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.function.end.css"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#tasty-syntax"
+            }
+          ]
+        }
+      ]
+    },
+    "urls": {
+      "patterns": [
+        {
+          "name": "meta.function-call.css",
+          "begin": "\\b(url)\\s*(\\()",
+          "end": "\\)",
+          "beginCaptures": {
+            "1": {
+              "name": "support.function.misc.css"
+            },
+            "2": {
+              "name": "punctuation.section.function.begin.css"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.function.end.css"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#strings"
+            },
+            {
+              "name": "string.unquoted.css",
+              "match": "[^\\)\\s]+"
+            }
+          ]
+        }
+      ]
+    },
+    "css-with-units": {
+      "patterns": [
+        {
+          "name": "constant.numeric.css-with-unit",
+          "match": "\\b[+-]?(?:\\d*\\.\\d+|\\d+)(em|ex|ch|rem|vw|vh|vmin|vmax|cm|mm|in|pt|pc|px|deg|grad|rad|turn|s|ms|Hz|kHz|dpi|dpcm|dppx)\\b|\\b[+-]?(?:\\d*\\.\\d+|\\d+)%",
+          "comment": "CSS numbers with explicit units (1.5rem, 100%, 2s, etc.)"
+        }
+      ]
+    },
+    "bare-numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.css",
+          "match": "(?<!\\w)[+-]?(?:\\d*\\.\\d+|\\d+)(?![a-z])",
+          "comment": "Bare numbers without units, including .5 format (after custom units are checked)"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.css",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.css",
+              "match": "\\\\."
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.single.css",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "name": "constant.character.escape.css",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.arithmetic.css",
+          "match": "[+\\-*/]"
+        },
+        {
+          "name": "punctuation.separator.css",
+          "match": "[,;]"
+        }
+      ]
+    },
+    "tasty-properties": {
+      "patterns": [
+        {
+          "name": "support.type.property-name.tasty",
+          "match": "\\b(fill|radius|preset|flow|gap|align|justify|place|inset|fade|scrollbar|transition)\\b"
+        },
+        {
+          "name": "support.type.property-name.tasty-layout",
+          "match": "\\b(padding|margin|width|height|display|hide)\\b"
+        },
+        {
+          "name": "support.type.property-name.tasty-border",
+          "match": "\\b(border|border-top|border-right|border-bottom|border-left)\\b"
+        }
+      ]
+    },
+    "state-logic-operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.logical.tasty",
+          "match": "(&|\\||\\^|!)",
+          "comment": "Logical operators: AND, OR, XOR, NOT"
+        },
+        {
+          "name": "punctuation.definition.group.tasty",
+          "match": "[()]",
+          "comment": "Grouping parentheses for complex expressions"
+        }
+      ]
+    }
+  }
+}
