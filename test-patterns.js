@@ -30,6 +30,12 @@ function testPatterns() {
       pattern: 'tasty-styles'
     },
     {
+      name: 'Variants pattern',
+      input: 'variants: {',
+      shouldMatch: true,
+      pattern: 'tasty-styles'
+    },
+    {
       name: 'Non-styles pattern',
       input: 'padding: {',
       shouldMatch: false,
@@ -101,6 +107,94 @@ function testPatterns() {
       input: 'const config = {',
       shouldMatch: false,
       pattern: 'tasty-styles'
+    },
+    // NEW: Non-string value tests
+    {
+      name: 'Boolean true value',
+      input: 'border: true,',
+      shouldMatch: true,
+      pattern: 'tasty-non-string-value'
+    },
+    {
+      name: 'Boolean false value',
+      input: 'hide: false,',
+      shouldMatch: true,
+      pattern: 'tasty-non-string-value'
+    },
+    {
+      name: 'Numeric zero value',
+      input: 'margin: 0,',
+      shouldMatch: true,
+      pattern: 'tasty-non-string-value'
+    },
+    {
+      name: 'Numeric positive value',
+      input: 'opacity: 1,',
+      shouldMatch: true,
+      pattern: 'tasty-non-string-value'
+    },
+    {
+      name: 'Numeric decimal value',
+      input: 'scale: 1.5,',
+      shouldMatch: true,
+      pattern: 'tasty-non-string-value'
+    },
+    {
+      name: 'Custom property as value',
+      input: 'padding: $local-spacing,',
+      shouldMatch: true,
+      pattern: 'tasty-non-string-value'
+    },
+    // NEW: Custom property definition tests (unquoted)
+    {
+      name: 'Custom property definition',
+      input: '$local-spacing: ',
+      shouldMatch: true,
+      pattern: 'tasty-object-property'
+    },
+    {
+      name: 'Custom property with underscore',
+      input: '$theme_color: ',
+      shouldMatch: true,
+      pattern: 'tasty-object-property'
+    },
+    {
+      name: 'Custom property with dash',
+      input: '$size-lg: ',
+      shouldMatch: true,
+      pattern: 'tasty-object-property'
+    },
+    // NEW: Quoted custom property definition tests
+    {
+      name: 'Quoted custom property definition single quotes',
+      input: "'$local-spacing': ",
+      shouldMatch: true,
+      pattern: 'tasty-object-property'
+    },
+    {
+      name: 'Quoted custom property definition double quotes',
+      input: '"$theme-color": ',
+      shouldMatch: true,
+      pattern: 'tasty-object-property'
+    },
+    {
+      name: 'Quoted custom property with backticks',
+      input: '`$size-lg`: ',
+      shouldMatch: true,
+      pattern: 'tasty-object-property'
+    },
+    // NEW: Auto-calc bracket tests
+    {
+      name: 'Auto-calc parentheses in string',
+      input: "radius: '(1cr + 1bw)',",
+      shouldMatch: true,
+      pattern: 'auto-calc'
+    },
+    {
+      name: 'Auto-calc in complex expression',
+      input: "height: 'initial max-content (50vh - 4x)',",
+      shouldMatch: true,
+      pattern: 'auto-calc'
     }
   ];
 

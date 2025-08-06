@@ -76,11 +76,57 @@
               "name": "source.tsx"
             }
           ]
+        },
+        {
+          "name": "meta.tasty-variants.tsx",
+          "begin": "\\b(variants)\\s*[:=]\\s*\\{",
+          "end": "\\}",
+          "contentName": "meta.embedded.block.tasty",
+          "beginCaptures": {
+            "1": {
+              "name": "entity.name.tag.tsx"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#tasty-object-property"
+            },
+            {
+              "include": "#tasty-nested-object"
+            },
+            {
+              "match": ",",
+              "name": "punctuation.separator.comma.tsx"
+            },
+            {
+              "match": "\\s+",
+              "name": "source.tsx"
+            }
+          ]
         }
       ]
     },
     "tasty-object-property": {
       "patterns": [
+        {
+          "comment": "Quoted custom property definition keys: '$property':",
+          "name": "meta.object-property.custom-property-quoted.tasty",
+          "match": "(['\"`])(\\$[a-zA-Z_][a-zA-Z0-9_-]*)(\\1)\\s*(:)",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.tsx"
+            },
+            "2": {
+              "name": "variable.other.constant.tasty"
+            },
+            "3": {
+              "name": "punctuation.definition.string.end.tsx"
+            },
+            "4": {
+              "name": "punctuation.separator.key-value.tsx"
+            }
+          }
+        },
         {
           "comment": "Pure attribute selector keys: '[data-theme=\"dark\"]'",
           "name": "meta.object-property.attribute-selector.tasty",
@@ -172,6 +218,17 @@
           ]
         },
         {
+          "comment": "Property value continuation for quoted custom properties",
+          "name": "meta.object-property.value.custom-property.tasty",
+          "begin": "(?<=['\"`]\\$[a-zA-Z_][a-zA-Z0-9_-]*['\"`]\\s*:)",
+          "end": "(?=,|\\})",
+          "patterns": [
+            {
+              "include": "#tasty-property-value"
+            }
+          ]
+        },
+        {
           "comment": "Property value continuation",
           "name": "meta.object-property.value.tasty",
           "begin": "(?<=:)",
@@ -183,8 +240,24 @@
           ]
         },
         {
+          "comment": "Custom property definition",
+          "name": "meta.object-property.custom-property.tasty",
+          "begin": "(\\$[a-zA-Z_][a-zA-Z0-9_-]*)\\s*:",
+          "end": "(?=,|\\})",
+          "beginCaptures": {
+            "1": {
+              "name": "variable.other.constant.tasty"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#tasty-property-value"
+            }
+          ]
+        },
+        {
           "name": "meta.object-property.unquoted.tasty",
-          "begin": "([a-zA-Z_$][a-zA-Z0-9_$-]*)\\s*:",
+          "begin": "([a-zA-Z_][a-zA-Z0-9_$-]*)\\s*:",
           "end": "(?=,|\\})",
           "beginCaptures": {
             "1": {
@@ -209,6 +282,9 @@
         },
         {
           "include": "#tasty-string-value"
+        },
+        {
+          "include": "#tasty-non-string-value"
         },
         {
           "match": "\\s+",
@@ -297,6 +373,25 @@
               "include": "#tasty-syntax"
             }
           ]
+        }
+      ]
+    },
+    "tasty-non-string-value": {
+      "patterns": [
+        {
+          "comment": "Boolean values",
+          "name": "constant.language.boolean.tasty",
+          "match": "\\b(true|false)\\b"
+        },
+        {
+          "comment": "Numeric values (integers, decimals, zero)",
+          "name": "constant.numeric.bare.tasty",
+          "match": "\\b[+-]?(?:\\d*\\.\\d+|\\d+)(?![a-zA-Z%])\\b"
+        },
+        {
+          "comment": "Custom properties starting with $",
+          "name": "variable.other.constant.tasty",
+          "match": "\\$[a-zA-Z_][a-zA-Z0-9_-]*"
         }
       ]
     },
@@ -395,7 +490,7 @@
           ]
         },
         {
-          "name": "variable.other.custom-property.tasty",
+          "name": "variable.other.constant.tasty",
           "match": "\\$[a-zA-Z_][a-zA-Z0-9_-]*",
           "comment": "Custom properties as single tokens: $local-spacing, $theme-color, etc."
         }
@@ -464,17 +559,17 @@
     "auto-calc": {
       "patterns": [
         {
-          "name": "meta.function-call.css",
-          "begin": "(?<!\\w|\\)|url)\\s*(\\()",
+          "name": "meta.function-call.auto-calc.tasty",
+          "begin": "(?<!\\w|url)\\s*(\\()",
           "end": "\\)",
           "beginCaptures": {
             "1": {
-              "name": "punctuation.section.function.begin.css"
+              "name": "punctuation.definition.auto-calc.begin.tasty"
             }
           },
           "endCaptures": {
             "0": {
-              "name": "punctuation.section.function.end.css"
+              "name": "punctuation.definition.auto-calc.end.tasty"
             }
           },
           "patterns": [

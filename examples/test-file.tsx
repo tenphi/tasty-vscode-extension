@@ -135,17 +135,22 @@ const InfoCard = tasty({
       color: '#text.60',
     },
   },
+  // Variants should be highlighted with tasty syntax
   variants: {
     default: {
       fill: '#surface',
+      padding: '4x',
+      radius: '2r',
     },
     danger: {
       fill: '#danger.10',
       border: '1bw solid #danger',
+      color: '#danger',
     },
     success: {
       fill: '#success.10',
       border: '1bw solid #success',
+      color: '#success.80',
     },
   },
 });
@@ -298,13 +303,20 @@ const InteractiveExample = () => (
 const AdvancedComponent = tasty({
   styles: {
     // Custom properties
-    '$local-spacing': '.2x',
+    '$local-spacing': '2x',
     '$theme-color': '#primary',
+    '$size-lg': '4x',
     
-    // Layout
+    // Layout  
     display: 'grid',
     gap: '$local-spacing',
     padding: '$local-spacing',
+    
+    // Test examples from user feedback
+    radius: '(1cr + 1bw)',
+    margin: 0,
+    hide: false,
+    opacity: 1.5,
     
     // Complex state-based styling
     fill: {
@@ -346,7 +358,32 @@ const AdvancedComponent = tasty({
   },
 });
 
-// 9. Complex state logic examples
+// 9. Test specific user feedback examples
+const PopoverComponent = tasty({
+  styles: {
+    // This should have consistent bracket highlighting
+    radius: '(1cr + 1bw)',
+    popover: 'initial max-content (50vh - 4x)',
+    
+    // Non-string values should be highlighted
+    margin: 0,
+    hide: false,
+    opacity: 1,
+    zIndex: 10,
+    
+    // Custom properties - EXACTLY like in user's image
+    '$local-spacing': '2x',          // QUOTED custom property definition - should be highlighted
+    '$theme-color': '#primary',      // QUOTED custom property definition - should be highlighted  
+    '$size-lg': '4x',               // QUOTED custom property definition - should be highlighted
+    
+    // Layout using custom properties
+    display: 'grid',
+    gap: '$local-spacing',          // Custom property usage in string - should be highlighted
+    padding: '$local-spacing',      // Custom property usage in string - should be highlighted
+  },
+});
+
+// 10. Complex state logic examples
 const StateLogicShowcase = tasty({
   styles: {
     fill: {
@@ -378,6 +415,7 @@ export {
   FormExample, 
   InteractiveExample,
   AdvancedComponent,
+  PopoverComponent,
   StateLogicShowcase,
   // Export the style variables for external use
   INPUT_STYLES,
