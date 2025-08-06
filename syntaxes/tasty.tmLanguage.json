@@ -35,6 +35,9 @@
           },
           "patterns": [
             {
+              "include": "#comments"
+            },
+            {
               "include": "#tasty-object-property"
             },
             {
@@ -62,6 +65,9 @@
           },
           "patterns": [
             {
+              "include": "#comments"
+            },
+            {
               "include": "#tasty-object-property"
             },
             {
@@ -88,6 +94,9 @@
             }
           },
           "patterns": [
+            {
+              "include": "#comments"
+            },
             {
               "include": "#tasty-object-property"
             },
@@ -300,6 +309,9 @@
           "end": "\\}",
           "patterns": [
             {
+              "include": "#comments"
+            },
+            {
               "include": "#tasty-object-property"
             },
             {
@@ -449,6 +461,15 @@
     },
     "comments": {
       "patterns": [
+        {
+          "name": "comment.line.double-slash.tsx",
+          "match": "//.*$",
+          "captures": {
+            "0": {
+              "name": "punctuation.definition.comment.tsx"
+            }
+          }
+        },
         {
           "name": "comment.block.css",
           "begin": "/\\*",
