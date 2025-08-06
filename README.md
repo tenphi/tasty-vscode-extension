@@ -6,25 +6,32 @@ A VS Code extension that provides syntax highlighting for Tasty CSS-in-JS styles
 
 ### Local Development
 
+**Prerequisites:** Node.js v20.18.1 or higher is required.
+
 1. Clone the repository:
    ```bash
    git clone git@github.com:tenphi/tasty-vscode-extension.git
    cd tasty-vscode-extension
    ```
 
-2. Install dependencies:
+2. Use the correct Node.js version:
+   ```bash
+   nvm use  # Uses the version specified in .nvmrc
+   ```
+
+3. Install dependencies:
    ```bash
    npm install
    ```
 
-3. Open the project in VS Code:
+4. Open the project in VS Code:
    ```bash
    code .
    ```
 
-4. Press `F5` to open a new Extension Development Host window with the extension loaded.
+5. Press `F5` to open a new Extension Development Host window with the extension loaded.
 
-5. In the new window, open or create a `.tsx` file and test the syntax highlighting with Tasty styles.
+6. In the new window, open or create a `.tsx` file and test the syntax highlighting with Tasty styles.
 
 ### Testing the Extension
 
