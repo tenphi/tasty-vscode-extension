@@ -46,6 +46,61 @@ function testPatterns() {
       input: "'!disabled & hovered': ",
       shouldMatch: true,
       pattern: 'tasty-object-property'
+    },
+    // NEW: Variable declaration patterns
+    {
+      name: 'const styles variable',
+      input: 'const styles = {',
+      shouldMatch: true,
+      pattern: 'tasty-styles'
+    },
+    {
+      name: 'const INPUT_STYLES variable',
+      input: 'const INPUT_STYLES = {',
+      shouldMatch: true,
+      pattern: 'tasty-styles'
+    },
+    {
+      name: 'let buttonStyles variable',
+      input: 'let buttonStyles = {',
+      shouldMatch: true,
+      pattern: 'tasty-styles'
+    },
+    {
+      name: 'var cardStyles variable',
+      input: 'var cardStyles = {',
+      shouldMatch: true,
+      pattern: 'tasty-styles'
+    },
+    {
+      name: 'const HEADER_STYLES variable',
+      input: 'const HEADER_STYLES = {',
+      shouldMatch: true,
+      pattern: 'tasty-styles'
+    },
+    {
+      name: 'Variable not ending with styles',
+      input: 'const config = {',
+      shouldMatch: false,
+      pattern: 'tasty-styles'
+    },
+    {
+      name: 'Property with styles in middle',
+      input: 'const stylesConfig = {',
+      shouldMatch: false,
+      pattern: 'tasty-styles'
+    },
+    {
+      name: 'Plain object should not match',
+      input: 'const plainObject = {',
+      shouldMatch: false,
+      pattern: 'tasty-styles'
+    },
+    {
+      name: 'Regular const assignment should not match',
+      input: 'const config = {',
+      shouldMatch: false,
+      pattern: 'tasty-styles'
     }
   ];
 

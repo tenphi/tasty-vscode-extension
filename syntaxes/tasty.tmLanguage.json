@@ -13,17 +13,47 @@
       "patterns": [
         {
           "name": "meta.tasty-styles.inline.tsx",
-          "begin": "\\{\\{?",
-          "end": "\\}\\}?",
+          "begin": "\\{\\{",
+          "end": "\\}\\}",
           "contentName": "meta.embedded.block.tasty",
           "patterns": [
             { "include": "#tasty-object-property" }
           ]
         },
         {
+          "name": "meta.tasty-styles.variable.tsx",
+          "begin": "\\b(const|let|var)\\s+(\\w*[Ss][Tt][Yy][Ll][Ee][Ss])\\s*=\\s*\\{",
+          "end": "\\}",
+          "contentName": "meta.embedded.block.tasty",
+          "beginCaptures": {
+            "1": {
+              "name": "storage.type.tsx"
+            },
+            "2": {
+              "name": "entity.name.tag.tsx"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#tasty-object-property"
+            },
+            {
+              "include": "#tasty-nested-object"
+            },
+            {
+              "match": ",",
+              "name": "punctuation.separator.comma.tsx"
+            },
+            {
+              "match": "\\s+",
+              "name": "source.tsx"
+            }
+          ]
+        },
+        {
           "name": "meta.tasty-styles.tsx",
-          "begin": "\\b(styles|\\w*[Ss]tyles)\\s*[:=]\\s*\\{\\{?",
-          "end": "\\}\\}?",
+          "begin": "\\b(styles|\\w*[Ss]tyles)\\s*[:=]\\s*\\{",
+          "end": "\\}",
           "contentName": "meta.embedded.block.tasty",
           "beginCaptures": {
             "1": {

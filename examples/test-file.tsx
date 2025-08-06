@@ -3,6 +3,66 @@ import { tasty } from '@cube-dev/ui-kit';
 
 // Test Tasty syntax highlighting with realistic examples
 
+// Variable declarations ending with 'styles' - NEW FEATURE
+const INPUT_STYLES = {
+  border: '1bw solid #border',
+  radius: '1r',
+  padding: '2x',
+  fill: {
+    '': '#white',
+    '[disabled]': '#gray.05',
+    'focused': '#primary.05'
+  },
+  color: '#text',
+  preset: 't3'
+};
+
+let buttonStyles = {
+  fill: '#primary',
+  color: '#white',
+  padding: '2x 4x',
+  radius: '1r',
+  border: 'none',
+  preset: 't3',
+  transition: 'fill 0.2s'
+};
+
+var cardStyles = {
+  fill: '#surface',
+  padding: '4x',
+  radius: '2r',
+  border: '1bw solid #border',
+  transition: 'theme 0.3s'
+};
+
+const HEADER_STYLES = {
+  fill: '#primary',
+  color: '#white',
+  padding: '3x 4x',
+  preset: 'h2',
+  align: 'center'
+};
+
+const styles = {
+  display: 'flex',
+  gap: '2x',
+  padding: '4x',
+  flow: 'column'
+};
+
+// Plain objects (NOT highlighted as Tasty syntax)
+const plainObject = {
+  asd: '123',
+  test: '1s asdf #primary',
+  someKey: 'regular value'
+};
+
+const config = {
+  apiUrl: 'https://api.example.com',
+  timeout: 5000,
+  theme: 'dark'
+};
+
 // 1. Basic Tasty component using real syntax
 const Card = tasty({
   as: 'div',
@@ -318,5 +378,11 @@ export {
   FormExample, 
   InteractiveExample,
   AdvancedComponent,
-  StateLogicShowcase
+  StateLogicShowcase,
+  // Export the style variables for external use
+  INPUT_STYLES,
+  buttonStyles,
+  cardStyles,
+  HEADER_STYLES,
+  styles
 };

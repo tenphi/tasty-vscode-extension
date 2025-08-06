@@ -19,6 +19,25 @@ const Component = () => (
 const testInput = `import React from 'react';
 import { tasty } from '@cube-dev/ui-kit';
 
+// Variable declarations ending with 'styles' - NEW FEATURE
+const INPUT_STYLES = {
+  border: '1bw solid #border',
+  radius: '1r',
+  padding: '2x',
+  fill: '#white'
+};
+
+let buttonStyles = {
+  fill: '#primary',
+  color: '#white',
+  padding: '2x 4x'
+};
+
+var cardStyles = {
+  fill: '#surface',
+  radius: '2r'
+};
+
 const Button = tasty({
   styles: {
     padding: '2x',
@@ -26,6 +45,11 @@ const Button = tasty({
   },
   as: 'button'
 });
+
+const plainObject = {
+  asd: '123',
+  test: '1s asdf #primary',
+};
 
 const normalVar = 'hello world';
 const normalFunction = () => {

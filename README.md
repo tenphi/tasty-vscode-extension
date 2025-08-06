@@ -8,8 +8,8 @@ A VS Code extension that provides syntax highlighting for Tasty CSS-in-JS styles
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/cube-js/cube.git
-   cd cube/tasty-vscode-extension
+   git clone git@github.com:tenphi/tasty-vscode-extension.git
+   cd tasty-vscode-extension
    ```
 
 2. Install dependencies:
@@ -33,6 +33,25 @@ Create a test file with the following content to see the syntax highlighting in 
 ```tsx
 import { tasty } from '@cube-dev/ui-kit';
 
+// NEW: Variable declarations ending with 'styles' are now supported!
+const INPUT_STYLES = {
+  border: '1bw solid #border',
+  radius: '1r',
+  padding: '2x',
+  fill: {
+    '': '#white',
+    '[disabled]': '#gray.05',
+    'focused': '#primary.05'
+  }
+};
+
+let buttonStyles = {
+  fill: '#primary',
+  color: '#white',
+  radius: '1r',
+  preset: 't3'
+};
+
 const Button = tasty({
   as: 'button',
   styles: {
@@ -51,25 +70,23 @@ const Button = tasty({
 });
 
 const Component = () => (
-  <div
-    inputStyles={{
-      border: '1bw solid #border',
-      radius: '1r',
-      padding: '2x',
-      fill: {
-        '': '#white',
-        '[disabled]': '#gray.05',
-        'focused': '#primary.05'
-      }
-    }}
-    buttonStyles={{
-      fill: '#primary',
-      color: '#white',
-      radius: '1r',
-      preset: 't3'
-    }}
-  >
-    Content
+  <div>
+    {/* Traditional property styles */}
+    <input
+      inputStyles={{
+        border: '1bw solid #border',
+        radius: '1r',
+        padding: '2x',
+        fill: {
+          '': '#white',
+          '[disabled]': '#gray.05',
+          'focused': '#primary.05'
+        }
+      }}
+    />
+    {/* Using variable-declared styles */}
+    <input style={INPUT_STYLES} />
+    <button style={buttonStyles}>Click me</button>
   </div>
 );
 ```
@@ -96,6 +113,7 @@ const Component = () => (
 - **Responsive arrays**: `['4x', '2x', '1x']`
 - **Nested state objects**: `{ '': '#white', hovered: '#gray.05' }` ✨ **Now fully supported!**
 - **State binding keys**: `'!disabled & hovered': '#blue'` ✨ **Now highlighted!**
+- **Variable declarations**: `const INPUT_STYLES = {...}`, `let buttonStyles = {...}`, `var styles = {...}` ✨ **NEW!**
 - **Dynamic state logic**: Any identifier as state + logical operators `&` (AND), `|` (OR), `^` (XOR), `!` (NOT)
 - **CSS selectors**: `:hover`, `.class`, `[data-attr="value"]`, `:nth-child(2n+1)`
 - **Complex expressions**: `'!disabled & custom-state'`, `'(loading | processing) & !readonly'`
@@ -139,6 +157,9 @@ The extension uses a TextMate grammar (`syntaxes/tasty.tmLanguage.json`) that is
 
 1. Inside `styles` properties
 2. Inside properties ending with `Styles` (e.g., `inputStyles`, `buttonStyles`)
+3. **NEW**: In variable declarations ending with `styles` (e.g., `const INPUT_STYLES = {...}`, `let buttonStyles = {...}`)
+
+**Important**: Plain objects that don't match these patterns are left untouched and highlighted as regular TypeScript/TSX code.
 
 The grammar recognizes and highlights various Tasty syntax elements according to the Tasty style parser specification.
 
