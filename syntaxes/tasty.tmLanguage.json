@@ -486,14 +486,14 @@
       "patterns": [
         {
           "name": "meta.function-call.custom-property.tasty",
-          "begin": "\\$\\(([a-zA-Z_][a-zA-Z0-9_-]*)(\\s*,\\s*)",
+          "begin": "\\((\\$[a-zA-Z_][a-zA-Z0-9_-]*)(\\s*,\\s*)",
           "end": "\\)",
           "beginCaptures": {
             "0": {
               "name": "variable.other.custom-property.function.tasty"
             },
             "1": {
-              "name": "entity.name.custom-property.tasty"
+              "name": "variable.other.constant.tasty"
             },
             "2": {
               "name": "punctuation.separator.comma.tasty"

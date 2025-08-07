@@ -307,14 +307,14 @@ const AdvancedComponent = tasty({
     '$theme-color': '#primary',
     '$size-lg': '4x',
     
-    // Layout  
+    // Layout using new syntax with defaults
     display: 'grid',
-    gap: '$local-spacing',
-    padding: '$local-spacing',
+    gap: '($local-spacing, 1x)',      // Custom property with fallback
+    padding: '($theme-color, #gray)', // Custom property with color fallback
+    margin: '($size-lg, 3x)',         // Custom property with size fallback
     
     // Test examples from user feedback
     radius: '(1cr + 1bw)',
-    margin: 0,
     hide: false,
     opacity: 1.5,
     
@@ -358,7 +358,33 @@ const AdvancedComponent = tasty({
   },
 });
 
-// 9. Test specific user feedback examples
+// 9. New Custom Properties Syntax Showcase
+const CustomPropertiesShowcase = tasty({
+  styles: {
+    // Custom property definitions
+    '$primary-spacing': '4x',
+    '$secondary-color': '#blue',
+    '$border-radius': '1r',
+    '$animation-duration': '0.3s',
+    
+    // NEW SYNTAX: Custom properties with default values
+    padding: '($primary-spacing, 2x)',           // Falls back to 2x if $primary-spacing not defined
+    fill: '($secondary-color, #gray)',           // Falls back to #gray if $secondary-color not defined  
+    radius: '($border-radius, 0.5r)',           // Falls back to 0.5r if $border-radius not defined
+    transition: 'all ($animation-duration, 0.2s)', // Falls back to 0.2s if $animation-duration not defined
+    
+    // Complex expressions with custom properties and defaults
+    margin: 'calc(($primary-spacing, 1x) * 2)', // Mathematical expressions with fallbacks
+    border: '1bw solid ($secondary-color, #border)', // Border with color fallback
+    gap: '($primary-spacing, 1x) ($primary-spacing, 1x)', // Multiple instances in one value
+    
+    // Mixed usage - some with defaults, some without
+    width: '($container-width, 100%)',           // With default
+    height: '$fixed-height',                     // Without default (old syntax still works)
+  },
+});
+
+// 10. Test specific user feedback examples  
 const PopoverComponent = tasty({
   styles: {
     // This should have consistent bracket highlighting
@@ -376,14 +402,14 @@ const PopoverComponent = tasty({
     '$theme-color': '#primary',      // QUOTED custom property definition - should be highlighted  
     '$size-lg': '4x',               // QUOTED custom property definition - should be highlighted
     
-    // Layout using custom properties
+    // Layout using custom properties with NEW SYNTAX
     display: 'grid',
-    gap: '$local-spacing',          // Custom property usage in string - should be highlighted
-    padding: '$local-spacing',      // Custom property usage in string - should be highlighted
+    gap: '($local-spacing, 2x)',          // Custom property with default value - should be highlighted
+    padding: '($local-spacing, 2x)',      // Custom property with default value - should be highlighted
   },
 });
 
-// 10. Complex state logic examples
+// 11. Complex state logic examples
 const StateLogicShowcase = tasty({
   styles: {
     fill: {
@@ -415,6 +441,7 @@ export {
   FormExample, 
   InteractiveExample,
   AdvancedComponent,
+  CustomPropertiesShowcase,
   PopoverComponent,
   StateLogicShowcase,
   // Export the style variables for external use
