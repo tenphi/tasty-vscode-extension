@@ -179,6 +179,8 @@ const FormExample = () => (
       type="text"
       placeholder="Enter text..."
     />
+    {/* Predefined styles via identifier should be ignored */}
+    <input styles={styles} />
     <FlexContainer
       gap="2x"
       align="center"
@@ -198,6 +200,8 @@ const FormExample = () => (
       >
         Submit
       </button>
+      {/* Attribute referencing identifier should be ignored */}
+      <button buttonStyles={buttonStyles}>Secondary</button>
       <button
         secondaryStyles={{
           fill: 'transparent',
@@ -281,6 +285,7 @@ const InteractiveExample = () => (
         padding: '4x',
         radius: '2r'
       }}
+      styles={styles}
     >
       <span
         textStyles={{

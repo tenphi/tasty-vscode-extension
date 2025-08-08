@@ -55,7 +55,8 @@
         },
         {
           "name": "meta.tasty-styles.tsx",
-          "begin": "\\b(styles|\\w*[Ss]tyles)\\s*[:=]\\s*\\{",
+          "comment": "Only match object properties (styles: { ... }) here. JSX attributes with styles={...} are handled by the inline {{ ... }} rule above. This avoids breaking when styles are set via a predefined object, e.g. styles={styles}.",
+          "begin": "\\b(styles|\\w*[Ss]tyles)\\s*:\\s*\\{",
           "end": "\\}",
           "contentName": "meta.embedded.block.tasty",
           "beginCaptures": {
