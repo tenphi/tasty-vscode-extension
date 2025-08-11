@@ -153,6 +153,20 @@ async function testGrammar() {
   let issueFound = false;
   let insideTastyScope = false;
 
+  // Additional test: user-reported snippet to ensure no leakage beyond tasty object
+  const leakageSnippet = `const TOKENS = { primary: '#primary' };
+const DEFAULT_STYLES = {
+  display: 'block',
+  preset: 't3',
+  ...Object.keys(TOKENS).reduce((map, key) => {
+    map[\`$\${key}\`] = TOKENS[key];
+
+    return map;
+  }, {}),
+};
+const STYLES = [...BASE_STYLES, ...BLOCK_STYLES];`;
+  const leakageLines = leakageSnippet.split('\n');
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const lineTokens = tsxGrammar.tokenizeLine(line, ruleStack);
@@ -196,6 +210,35 @@ async function testGrammar() {
     }
     
     console.log();
+  }
+
+  // Now test the leakage snippet separately to assert that tasty scope ends
+  console.log('\n🧪 Testing user-reported leakage snippet...\n');
+  ruleStack = vsctm.INITIAL;
+  let reachedPostObjectLine = false;
+  for (let i = 0; i < leakageLines.length; i++) {
+    const line = leakageLines[i];
+    const lineTokens = tsxGrammar.tokenizeLine(line, ruleStack);
+    ruleStack = lineTokens.ruleStack;
+
+    if (line.includes('const STYLES')) {
+      reachedPostObjectLine = true;
+    }
+
+    for (const token of lineTokens.tokens) {
+      const tokenText = line.substring(token.startIndex, token.endIndex);
+      const scopes = token.scopes;
+      const hasTastyScope = scopes.some(scope => 
+        scope.includes('tasty') || 
+        scope.includes('meta.tasty-styles') ||
+        scope.includes('meta.embedded.block.tasty')
+      );
+
+      if (reachedPostObjectLine && hasTastyScope) {
+        console.log(`  ❌ LEAKAGE AFTER OBJECT: "${tokenText}" → ${scopes.join(', ')}`);
+        issueFound = true;
+      }
+    }
   }
 
   if (issueFound) {

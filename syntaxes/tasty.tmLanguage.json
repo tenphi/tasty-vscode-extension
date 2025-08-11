@@ -38,6 +38,9 @@
               "include": "#comments"
             },
             {
+              "include": "#template-strings"
+            },
+            {
               "include": "#tasty-object-property"
             },
             {
@@ -69,6 +72,9 @@
               "include": "#comments"
             },
             {
+              "include": "#template-strings"
+            },
+            {
               "include": "#tasty-object-property"
             },
             {
@@ -97,6 +103,9 @@
           "patterns": [
             {
               "include": "#comments"
+            },
+            {
+              "include": "#template-strings"
             },
             {
               "include": "#tasty-object-property"
@@ -313,6 +322,9 @@
               "include": "#comments"
             },
             {
+              "include": "#template-strings"
+            },
+            {
               "include": "#tasty-object-property"
             },
             {
@@ -325,6 +337,31 @@
             {
               "match": "\\s+",
               "name": "source.tsx"
+            }
+          ]
+        }
+      ]
+    },
+    "template-strings": {
+      "patterns": [
+        {
+          "name": "string.template.tsx",
+          "begin": "`",
+          "end": "`",
+          "patterns": [
+            {
+              "name": "constant.character.escape.tsx",
+              "match": "\\\\."
+            },
+            {
+              "name": "meta.interpolation.tsx",
+              "begin": "\\$\\{",
+              "end": "\\}",
+              "patterns": [
+                {
+                  "include": "#tasty-nested-object"
+                }
+              ]
             }
           ]
         }

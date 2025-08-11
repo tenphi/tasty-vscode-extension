@@ -456,3 +456,16 @@ export {
   HEADER_STYLES,
   styles
 };
+
+// User-reported leakage case: ensure highlighting stops after closing brace
+const TOKENS = { primary: '#primary' };
+const DEFAULT_STYLES = {
+  display: 'block',
+  preset: 't3',
+  ...Object.keys(TOKENS).reduce((map, key) => {
+    map[`$${key}`] = TOKENS[key];
+
+    return map;
+  }, {}),
+};
+const STYLES = [...BASE_STYLES, ...BLOCK_STYLES];
