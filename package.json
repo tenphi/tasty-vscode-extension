@@ -2,7 +2,7 @@
   "name": "tasty-syntax-highlighting",
   "displayName": "Tasty Syntax Highlighting",
   "description": "Syntax highlighting for Tasty CSS-in-JS styles in TSX files",
-  "version": "1.0.4",
+  "version": "1.0.6",
   "publisher": "cube-dev",
   "engines": {
     "vscode": "^1.74.0",

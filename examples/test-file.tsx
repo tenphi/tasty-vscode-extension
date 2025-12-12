@@ -84,6 +84,7 @@ const Button = tasty({
     border: 'none',
     preset: 't3',
     transition: 'fill 0.2s',
+    // Inline comment inside tasty styles should NOT leak highlighting
     fill: {
       '': '#primary',
       'hovered': '#primary.8',
@@ -395,6 +396,8 @@ const PopoverComponent = tasty({
     // This should have consistent bracket highlighting
     radius: '(1cr + 1bw)',
     popover: 'initial max-content (50vh - 4x)',
+    // Regression: comment in the middle of a property value block
+    // should end at EOL and not leak until file end
     
     // Non-string values should be highlighted
     margin: 0,
@@ -437,6 +440,70 @@ const StateLogicShowcase = tasty({
   },
 });
 
+// 12. NEW SIMPLIFIED SYNTAX: Simplified attribute selector showcase
+const SimplifiedSyntaxShowcase = tasty({
+  styles: {
+    // Simplified syntax in object property keys - all three quote styles
+    'theme=danger': {
+      fill: '#danger.10',
+      color: '#danger',
+      border: '1bw solid #danger',
+    },
+    'theme="success"': {
+      fill: '#success.10',
+      color: '#success',
+      border: '1bw solid #success',
+    },
+    "theme='warning'": {
+      fill: '#warning.10',
+      color: '#warning',
+      border: '1bw solid #warning',
+    },
+    
+    // More complex examples with multiple attributes
+    'variant=primary': {
+      fill: '#primary',
+      color: '#white',
+    },
+    '(:has(> Icon) | :has(> Prefix)) & (:has(> RightIcon) | :has(> Suffix) | :has(> Actions))': {
+      gap: '2x',
+      align: 'center',
+    },
+    'size="large"': {
+      padding: '4x 6x',
+      preset: 'h2',
+    },
+    "mode='dark'": {
+      fill: '#dark',
+      color: '#white',
+    },
+    
+    // Simplified syntax mixed with other state expressions
+    fill: {
+      '': '#surface',
+      'hovered': '#primary.05',
+      'theme=danger': '#danger.10',           // Simplified syntax in value
+      'theme="success"': '#success.10',       // Simplified syntax with double quotes
+      "theme='warning'": '#warning.10',       // Simplified syntax with single quotes
+      'variant=primary & hovered': '#primary.20',  // Combined with state logic
+      'size="large" | variant="xl"': '#gray.05',   // Combined with OR logic
+    },
+    
+    color: {
+      '': '#text',
+      'theme=danger': '#danger',
+      'theme="success"': '#success',
+      "variant='secondary'": '#secondary',
+    },
+    
+    border: {
+      '': '1bw solid #border',
+      'theme=danger': '2bw solid #danger',
+      'theme="success"': '2bw solid #success',
+    },
+  },
+});
+
 export { 
   Card, 
   Button, 
@@ -449,6 +516,7 @@ export {
   CustomPropertiesShowcase,
   PopoverComponent,
   StateLogicShowcase,
+  SimplifiedSyntaxShowcase,
   // Export the style variables for external use
   INPUT_STYLES,
   buttonStyles,
