@@ -17,7 +17,10 @@
           "end": "\\}\\}",
           "contentName": "meta.embedded.block.tasty",
           "patterns": [
-            { "include": "#tasty-object-property" }
+            { "include": "#comments" },
+            { "include": "#template-strings" },
+            { "include": "#tasty-object-property" },
+            { "include": "#tasty-nested-object" }
           ]
         },
         {
@@ -38,6 +41,9 @@
               "include": "#comments"
             },
             {
+              "include": "#template-strings"
+            },
+            {
               "include": "#tasty-object-property"
             },
             {
@@ -55,7 +61,8 @@
         },
         {
           "name": "meta.tasty-styles.tsx",
-          "begin": "\\b(styles|\\w*[Ss]tyles)\\s*[:=]\\s*\\{",
+          "comment": "Only match object properties (styles: { ... }) here. JSX attributes with styles={...} are handled by the inline {{ ... }} rule above. This avoids breaking when styles are set via a predefined object, e.g. styles={styles}.",
+          "begin": "\\b(styles|\\w*[Ss]tyles)\\s*:\\s*\\{",
           "end": "\\}",
           "contentName": "meta.embedded.block.tasty",
           "beginCaptures": {
@@ -66,6 +73,9 @@
           "patterns": [
             {
               "include": "#comments"
+            },
+            {
+              "include": "#template-strings"
             },
             {
               "include": "#tasty-object-property"
@@ -96,6 +106,9 @@
           "patterns": [
             {
               "include": "#comments"
+            },
+            {
+              "include": "#template-strings"
             },
             {
               "include": "#tasty-object-property"
@@ -135,6 +148,102 @@
               "name": "punctuation.separator.key-value.tsx"
             }
           }
+        },
+        {
+          "comment": "Simplified attribute selector keys with double-quoted values: 'theme=\"danger\"':",
+          "name": "meta.object-property.attribute-selector.tasty",
+          "begin": "(['\"`])([a-zA-Z_][a-zA-Z0-9_-]*)(=)(\")([^\"]*)(\")(\\1)\\s*:",
+          "end": "(?=,|\\})",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.tsx"
+            },
+            "2": {
+              "name": "entity.other.attribute-name.tasty"
+            },
+            "3": {
+              "name": "keyword.operator.attribute-selector.tasty"
+            },
+            "4": {
+              "name": "punctuation.definition.string.begin.tasty"
+            },
+            "5": {
+              "name": "string.quoted.attribute-value.tasty"
+            },
+            "6": {
+              "name": "punctuation.definition.string.end.tasty"
+            },
+            "7": {
+              "name": "punctuation.definition.string.end.tsx"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#tasty-property-value"
+            }
+          ]
+        },
+        {
+          "comment": "Simplified attribute selector keys with single-quoted values: 'theme='danger'':",
+          "name": "meta.object-property.attribute-selector.tasty",
+          "begin": "(['\"`])([a-zA-Z_][a-zA-Z0-9_-]*)(=)(')([^']*)(')(\\1)\\s*:",
+          "end": "(?=,|\\})",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.tsx"
+            },
+            "2": {
+              "name": "entity.other.attribute-name.tasty"
+            },
+            "3": {
+              "name": "keyword.operator.attribute-selector.tasty"
+            },
+            "4": {
+              "name": "punctuation.definition.string.begin.tasty"
+            },
+            "5": {
+              "name": "string.quoted.attribute-value.tasty"
+            },
+            "6": {
+              "name": "punctuation.definition.string.end.tasty"
+            },
+            "7": {
+              "name": "punctuation.definition.string.end.tsx"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#tasty-property-value"
+            }
+          ]
+        },
+        {
+          "comment": "Simplified attribute selector keys with unquoted values: 'theme=danger':",
+          "name": "meta.object-property.attribute-selector.tasty",
+          "begin": "(['\"`])([a-zA-Z_][a-zA-Z0-9_-]*)(=)([a-zA-Z0-9_-]+)(\\1)\\s*:",
+          "end": "(?=,|\\})",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.tsx"
+            },
+            "2": {
+              "name": "entity.other.attribute-name.tasty"
+            },
+            "3": {
+              "name": "keyword.operator.attribute-selector.tasty"
+            },
+            "4": {
+              "name": "string.unquoted.attribute-value.tasty"
+            },
+            "5": {
+              "name": "punctuation.definition.string.end.tsx"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#tasty-property-value"
+            }
+          ]
         },
         {
           "comment": "Pure attribute selector keys: '[data-theme=\"dark\"]'",
@@ -213,10 +322,13 @@
               "name": "punctuation.definition.string.end.tsx"
             }
           },
-          "contentName": "string.quoted.key.tasty",
+          "contentName": "meta.embedded.block.tasty string.quoted.key.tasty",
           "patterns": [
             {
               "include": "#custom-properties"
+            },
+            {
+              "include": "#state-logic-groups"
             },
             {
               "include": "#state-selectors"
@@ -284,6 +396,9 @@
     "tasty-property-value": {
       "patterns": [
         {
+          "include": "#comments"
+        },
+        {
           "include": "#tasty-nested-object"
         },
         {
@@ -312,6 +427,9 @@
               "include": "#comments"
             },
             {
+              "include": "#template-strings"
+            },
+            {
               "include": "#tasty-object-property"
             },
             {
@@ -324,6 +442,31 @@
             {
               "match": "\\s+",
               "name": "source.tsx"
+            }
+          ]
+        }
+      ]
+    },
+    "template-strings": {
+      "patterns": [
+        {
+          "name": "string.template.tsx",
+          "begin": "`",
+          "end": "`",
+          "patterns": [
+            {
+              "name": "constant.character.escape.tsx",
+              "match": "\\\\."
+            },
+            {
+              "name": "meta.interpolation.tsx",
+              "begin": "\\$\\{",
+              "end": "\\}",
+              "patterns": [
+                {
+                  "include": "#tasty-nested-object"
+                }
+              ]
             }
           ]
         }
@@ -346,6 +489,7 @@
             }
           },
           "patterns": [
+            { "include": "#comments" },
             {
               "include": "#tasty-string-value"
             },
@@ -428,6 +572,9 @@
           "include": "#value-keywords"
         },
         {
+          "include": "#state-logic-groups"
+        },
+        {
           "include": "#state-selectors"
         },
         {
@@ -486,14 +633,14 @@
       "patterns": [
         {
           "name": "meta.function-call.custom-property.tasty",
-          "begin": "\\$\\(([a-zA-Z_][a-zA-Z0-9_-]*)(\\s*,\\s*)",
+          "begin": "\\((\\$[a-zA-Z_][a-zA-Z0-9_-]*)(\\s*,\\s*)",
           "end": "\\)",
           "beginCaptures": {
             "0": {
               "name": "variable.other.custom-property.function.tasty"
             },
             "1": {
-              "name": "entity.name.custom-property.tasty"
+              "name": "variable.other.constant.tasty"
             },
             "2": {
               "name": "punctuation.separator.comma.tasty"
@@ -623,6 +770,66 @@
     },
     "state-selectors": {
       "patterns": [
+        {
+          "name": "meta.attribute-selector.tasty",
+          "match": "([a-zA-Z_][a-zA-Z0-9_-]*)(=)(\")([^\"]*)(\")",
+          "captures": {
+            "1": {
+              "name": "entity.other.attribute-name.tasty"
+            },
+            "2": {
+              "name": "keyword.operator.attribute-selector.tasty"
+            },
+            "3": {
+              "name": "punctuation.definition.string.begin.tasty"
+            },
+            "4": {
+              "name": "string.quoted.attribute-value.tasty"
+            },
+            "5": {
+              "name": "punctuation.definition.string.end.tasty"
+            }
+          },
+          "comment": "Simplified attribute selector with double-quoted value: theme=\"danger\""
+        },
+        {
+          "name": "meta.attribute-selector.tasty",
+          "match": "([a-zA-Z_][a-zA-Z0-9_-]*)(=)(')([^']*)(')",
+          "captures": {
+            "1": {
+              "name": "entity.other.attribute-name.tasty"
+            },
+            "2": {
+              "name": "keyword.operator.attribute-selector.tasty"
+            },
+            "3": {
+              "name": "punctuation.definition.string.begin.tasty"
+            },
+            "4": {
+              "name": "string.quoted.attribute-value.tasty"
+            },
+            "5": {
+              "name": "punctuation.definition.string.end.tasty"
+            }
+          },
+          "comment": "Simplified attribute selector with single-quoted value: theme='danger'"
+        },
+        {
+          "name": "meta.attribute-selector.tasty",
+          "match": "\\b([a-zA-Z_][a-zA-Z0-9_-]*)(=)([a-zA-Z0-9_-]+)\\b",
+          "captures": {
+            "1": {
+              "name": "entity.other.attribute-name.tasty"
+            },
+            "2": {
+              "name": "keyword.operator.attribute-selector.tasty"
+            },
+            "3": {
+              "name": "string.unquoted.attribute-value.tasty"
+            }
+          },
+          "comment": "Simplified attribute selector with unquoted value: theme=danger"
+        },
         {
           "name": "support.constant.property-value.tasty-state",
           "match": "\\b[a-z][a-z0-9-]*\\b",
@@ -860,11 +1067,49 @@
           "name": "keyword.operator.logical.tasty",
           "match": "(&|\\||\\^|!)",
           "comment": "Logical operators: AND, OR, XOR, NOT"
-        },
+        }
+      ]
+    },
+    "state-logic-groups": {
+      "patterns": [
         {
-          "name": "punctuation.definition.group.tasty",
-          "match": "[()]",
-          "comment": "Grouping parentheses for complex expressions"
+          "name": "meta.group.state-logic.tasty",
+          "begin": "\\(",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.section.group.begin.tasty"
+            }
+          },
+          "end": "\\)",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.group.end.tasty"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#comments"
+            },
+            {
+              "include": "#state-logic-groups"
+            },
+            {
+              "include": "#state-selectors"
+            },
+            {
+              "include": "#state-logic-operators"
+            },
+            {
+              "include": "#custom-properties"
+            },
+            {
+              "include": "#hash-colors"
+            },
+            {
+              "include": "#color-functions"
+            }
+          ],
+          "comment": "Recursive grouping for logical expressions to support nested highlighting"
         }
       ]
     }

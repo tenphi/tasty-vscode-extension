@@ -121,6 +121,7 @@ const Component = () => (
 - **Nested state objects**: `{ '': '#white', hovered: '#gray.05' }` ✨ **Now fully supported!**
 - **State binding keys**: `'!disabled & hovered': '#blue'` ✨ **Now highlighted!**
 - **Variable declarations**: `const INPUT_STYLES = {...}`, `let buttonStyles = {...}`, `var styles = {...}` ✨ **NEW!**
+- **Ignored JSX attributes with identifiers**: `styles={styles}`, `inputStyles={buttonStyles}` are intentionally ignored to prevent false positives
 - **Dynamic state logic**: Any identifier as state + logical operators `&` (AND), `|` (OR), `^` (XOR), `!` (NOT)
 - **CSS selectors**: `:hover`, `.class`, `[data-attr="value"]`, `:nth-child(2n+1)`
 - **Complex expressions**: `'!disabled & custom-state'`, `'(loading | processing) & !readonly'`
@@ -167,6 +168,8 @@ The extension uses a TextMate grammar (`syntaxes/tasty.tmLanguage.json`) that is
 3. **NEW**: In variable declarations ending with `styles` (e.g., `const INPUT_STYLES = {...}`, `let buttonStyles = {...}`)
 
 **Important**: Plain objects that don't match these patterns are left untouched and highlighted as regular TypeScript/TSX code.
+
+Additionally, JSX attributes that reference a predefined object are ignored. For example, `styles={styles}` or `inputStyles={buttonStyles}` will not trigger Tasty highlighting. Only inline object literals like `inputStyles={{ ... }}` are highlighted.
 
 The grammar recognizes and highlights various Tasty syntax elements according to the Tasty style parser specification.
 
