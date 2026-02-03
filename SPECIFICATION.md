@@ -312,9 +312,7 @@ Token, preset, and state descriptions can be provided via the `tokenDescriptions
 ### Project Config (`tasty.config.ts`)
 
 ```typescript
-import type { TastyExtensionConfig } from '@cube-dev/ui-kit';
-
-const config: TastyExtensionConfig = {
+export default {
   // Extend from @cube-dev/ui-kit or a relative path
   extends: '@cube-dev/ui-kit',
 
@@ -350,8 +348,6 @@ const config: TastyExtensionConfig = {
     '@dark': 'Dark theme mode',
   },
 };
-
-export default config;
 ```
 
 ### Config Fields

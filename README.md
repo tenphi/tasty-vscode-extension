@@ -76,9 +76,7 @@ const button = tasty({
 Create a `tasty.config.ts` file in your project root (or any directory) to enable validation and improve autocomplete:
 
 ```typescript
-import type { TastyExtensionConfig } from '@cube-dev/ui-kit';
-
-const config: TastyExtensionConfig = {
+export default {
   // Color and custom property tokens
   tokens: [
     '#primary', '#secondary', '#danger', '#success',
@@ -110,8 +108,6 @@ const config: TastyExtensionConfig = {
     '@dark': 'Dark theme mode',
   },
 };
-
-export default config;
 ```
 
 ### Extending from Packages
@@ -119,9 +115,7 @@ export default config;
 If you're using `@cube-dev/ui-kit`, you can extend its configuration to inherit all tokens, presets, and states:
 
 ```typescript
-import type { TastyExtensionConfig } from '@cube-dev/ui-kit';
-
-const config: TastyExtensionConfig = {
+export default {
   // Extend from the UI Kit package
   extends: '@cube-dev/ui-kit',
 
@@ -140,8 +134,6 @@ const config: TastyExtensionConfig = {
     '#brand-primary': 'Primary brand color for this project',
   },
 };
-
-export default config;
 ```
 
 The `extends` field supports:
