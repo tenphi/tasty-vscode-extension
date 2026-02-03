@@ -1,13 +1,29 @@
+# Source files (bundled into dist)
+client/**
+server/**
+shared/**
+src/**
+
+# Config and development files
 .vscode/**
 .vscode-test/**
-src/**
 .gitignore
 .yarnrc
+.eslintrc.json
+.nvmrc
 vsc-extension-quickstart.md
 **/tsconfig.json
-**/.eslintrc.json
+vite.config.ts
+
+# Test files
+test/**
+test-*.js
+test-*.tsx
+
+# Build artifacts we don't need
 **/*.map
-**/*.ts
-**/node_modules/**
-webpack.config.js
+node_modules/**
+package-lock.json
 *.vsix
+
+# Keep dist/, syntaxes/, examples/

@@ -1,177 +1,298 @@
-# Tasty Syntax Highlighting
+# Tasty Syntax Highlighting for VSCode
 
-A VS Code extension that provides syntax highlighting for Tasty CSS-in-JS styles in TSX files.
+A VSCode extension that provides syntax highlighting, validation, and autocomplete for [Tasty](https://github.com/cube-js/cube-ui-kit) CSS-in-JS styles.
 
-## Quick Start
+> **Version**: 2.0.x - Complete rewrite using Language Server Protocol (LSP) for context-aware highlighting and validation.
 
-### Local Development
+## Features
 
-**Prerequisites:** Node.js v20.18.1 or higher is required.
-
-1. Clone the repository:
-   ```bash
-   git clone git@github.com:tenphi/tasty-vscode-extension.git
-   cd tasty-vscode-extension
-   ```
-
-2. Use the correct Node.js version:
-   ```bash
-   nvm use  # Uses the version specified in .nvmrc
-   ```
-
-3. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-4. Open the project in VS Code:
-   ```bash
-   code .
-   ```
-
-5. Press `F5` to open a new Extension Development Host window with the extension loaded.
-
-6. In the new window, open or create a `.tsx` file and test the syntax highlighting with Tasty styles.
-
-### Testing the Extension
-
-Create a test file with the following content to see the syntax highlighting in action:
-
-```tsx
-import { tasty } from '@cube-dev/ui-kit';
-
-// NEW: Variable declarations ending with 'styles' are now supported!
-const INPUT_STYLES = {
-  border: '1bw solid #border',
-  radius: '1r',
-  padding: '2x',
-  fill: {
-    '': '#white',
-    '[disabled]': '#gray.05',
-    'focused': '#primary.05'
-  }
-};
-
-let buttonStyles = {
-  fill: '#primary',
-  color: '#white',
-  radius: '1r',
-  preset: 't3'
-};
-
-const Button = tasty({
-  as: 'button',
-  styles: {
-    padding: '2x 4x',
-    fill: {
-      '': '#primary',
-      'hovered': '#primary.8',
-      '[disabled]': '#gray'
-    },
-    color: '#white',
-    radius: '1r',
-    border: 'none',
-    preset: 't3',
-    transition: 'fill 0.2s'
-  }
-});
-
-const Component = () => (
-  <div>
-    {/* Traditional property styles */}
-    <input
-      inputStyles={{
-        border: '1bw solid #border',
-        radius: '1r',
-        padding: '2x',
-        fill: {
-          '': '#white',
-          '[disabled]': '#gray.05',
-          'focused': '#primary.05'
-        }
-      }}
-    />
-    {/* Using variable-declared styles */}
-    <input style={INPUT_STYLES} />
-    <button style={buttonStyles}>Click me</button>
-  </div>
-);
-```
-
-✨ **All Tasty syntax now fully supported** with comprehensive automated testing! 
-
-🧪 **Automated Test Results:**
-- ✅ **All grammar patterns work** - `npm run test:patterns`
-- ✅ **Boundary conditions fixed** - `npm run test:grammar` 
-- ✅ **JSX patterns ready** - Regex supports `inputStyles={{...}}`
-- 🔧 **Manual VS Code testing required** for final JSX injection verification
+- **Syntax Highlighting**: Color tokens, custom properties, units, presets, and state modifiers are highlighted with semantic meaning
+- **Validation & Diagnostics**: Real-time validation against your project's `tasty.config.ts` file
+- **Autocomplete**: Context-aware suggestions for properties, tokens, presets, and states
+- **Hover Information**: Detailed information about tokens, units, and properties on hover
+- **Config File Support**: Hierarchical configuration with `tasty.config.ts` files
+- **Package Extension**: Extend configs from npm packages (e.g., `@cube-dev/ui-kit`)
 
 ## Supported Syntax
 
-- **Design tokens**: `#primary`, `#text`, `#surface`, `#border` with opacity `#primary.5`, `#danger.10`
-- **Custom units**: `2x` (gap), `1r` (radius), `1bw` (border-width), `1cr` (card-radius), `1sf` (stable-fraction)
-- **Custom properties**: `$variable`, `$(variable, fallback)`
-- **Tasty properties**: `fill`, `radius`, `preset`, `flow`, `gap`, `align`, `justify`, `fade`, `scrollbar`
-- **Boolean shortcuts**: `border: true`, `radius: true`
-- **Typography presets**: `h1`, `h2`, `t3`, `p1`, `c1`, etc.
-- **State modifiers**: `hovered`, `pressed`, `focused`, `disabled`, `[disabled]`
-- **Directional modifiers**: `top`, `right`, `bottom`, `left`
-- **Shape modifiers**: `round`, `ellipse`, `leaf`, `backleaf`
-- **Responsive arrays**: `['4x', '2x', '1x']`
-- **Nested state objects**: `{ '': '#white', hovered: '#gray.05' }` ✨ **Now fully supported!**
-- **State binding keys**: `'!disabled & hovered': '#blue'` ✨ **Now highlighted!**
-- **Variable declarations**: `const INPUT_STYLES = {...}`, `let buttonStyles = {...}`, `var styles = {...}` ✨ **NEW!**
-- **Ignored JSX attributes with identifiers**: `styles={styles}`, `inputStyles={buttonStyles}` are intentionally ignored to prevent false positives
-- **Dynamic state logic**: Any identifier as state + logical operators `&` (AND), `|` (OR), `^` (XOR), `!` (NOT)
-- **CSS selectors**: `:hover`, `.class`, `[data-attr="value"]`, `:nth-child(2n+1)`
-- **Complex expressions**: `'!disabled & custom-state'`, `'(loading | processing) & !readonly'`
-- **Comments**: CSS-style comments `/* ... */`
+### `tasty()` Function
+
+```typescript
+const Button = tasty({
+  styles: {
+    padding: '2x 4x',      // Custom units
+    fill: '#purple',       // Color tokens
+    color: '#white',
+    radius: '1r',          // Radius unit
+    preset: 't3 strong',   // Typography presets
+  },
+  variants: {
+    primary: {
+      fill: '#primary',
+    },
+  },
+});
+```
+
+### `tastyStatic()` Function
+
+```typescript
+// Single styles object
+const card = tastyStatic({
+  padding: '4x',
+  fill: '#surface',
+});
+
+// Extending a base style
+const primaryCard = tastyStatic(card, {
+  fill: '#purple',
+});
+
+// Selector mode (global styles)
+tastyStatic('body', {
+  fill: '#dark-bg',
+  preset: 't3',
+});
+```
+
+### State-Based Styles
+
+```typescript
+const button = tasty({
+  styles: {
+    fill: {
+      '': '#white',           // Default
+      'hovered': '#gray.05',  // Boolean modifier
+      ':focus': '#purple.1',  // Pseudo-class
+      '@mobile': '#light',    // State alias
+      '@media(w < 768px)': '#surface',  // Media query
+    },
+  },
+});
+```
+
+## Configuration
+
+Create a `tasty.config.ts` file in your project root (or any directory) to enable validation and improve autocomplete:
+
+```typescript
+import type { TastyExtensionConfig } from '@cube-dev/ui-kit';
+
+const config: TastyExtensionConfig = {
+  // Color and custom property tokens
+  tokens: [
+    '#primary', '#secondary', '#danger', '#success',
+    '#dark', '#light', '#white', '#black',
+    '$gap', '$radius', '$card-padding',
+  ],
+
+  // Custom units (built-in: x, r, cr, bw, ow, fs, lh, sf)
+  units: ['cols', 'rows'],
+
+  // State aliases for responsive/theme variants
+  states: ['@mobile', '@tablet', '@desktop', '@dark', '@light'],
+
+  // Typography presets
+  presets: ['h1', 'h2', 'h3', 't1', 't2', 't3', 'tag'],
+
+  // Descriptions for hover information
+  tokenDescriptions: {
+    '#primary': 'Primary brand color',
+    '$gap': 'Base spacing unit for layouts',
+  },
+
+  presetDescriptions: {
+    'h1': 'Main page heading (32px, bold)',
+  },
+
+  stateDescriptions: {
+    '@mobile': 'Mobile viewport (width < 768px)',
+    '@dark': 'Dark theme mode',
+  },
+};
+
+export default config;
+```
+
+### Extending from Packages
+
+If you're using `@cube-dev/ui-kit`, you can extend its configuration to inherit all tokens, presets, and states:
+
+```typescript
+import type { TastyExtensionConfig } from '@cube-dev/ui-kit';
+
+const config: TastyExtensionConfig = {
+  // Extend from the UI Kit package
+  extends: '@cube-dev/ui-kit',
+
+  // Add project-specific tokens
+  tokens: [
+    '#brand-primary',
+    '#brand-secondary',
+    '$custom-spacing',
+  ],
+
+  // Add project-specific states
+  states: ['@desktop', '@print'],
+
+  // Add descriptions for your custom tokens
+  tokenDescriptions: {
+    '#brand-primary': 'Primary brand color for this project',
+  },
+};
+
+export default config;
+```
+
+The `extends` field supports:
+- **Relative paths**: `'../shared/tasty.config.ts'`
+- **Package names**: `'@cube-dev/ui-kit'` (looks for `tasty.config.ts` in the package root)
+
+### Local Definitions
+
+The extension automatically detects tokens and state aliases defined locally in your files:
+
+```typescript
+const Component = tasty({
+  styles: {
+    // Token definitions - no config needed!
+    '$side-padding': '2x',
+    '#custom-color': '#purple',
+    '@hover': ':hover',  // Local state alias
+    
+    // Token usages - recognized from local definitions
+    padding: '0 $side-padding',
+    fill: '#custom-color',
+    color: { '': '#text', '@hover': '#purple' },
+  },
+});
+```
+
+Local definitions:
+- Are excluded from "unknown token" warnings
+- Appear in autocomplete suggestions (marked as "local")
+- Show "Defined locally in this file" on hover
+
+### Config Hierarchy
+
+The extension supports hierarchical configs in monorepos:
+
+```
+workspace/
+├── tasty.config.ts          # Root config (may extend @cube-dev/ui-kit)
+├── packages/
+│   ├── dashboard/
+│   │   ├── tasty.config.ts  # Dashboard-specific tokens
+│   │   └── src/
+│   └── marketing/
+│       ├── tasty.config.ts  # Marketing-specific tokens
+│       └── src/
+```
+
+**Merge rules:**
+- Configs are merged from root to leaf, with closer configs taking precedence
+- Arrays (tokens, presets, states) are combined and deduplicated
+- `false` value disables validation for that category (tokens, units, funcs)
+- Extended configs (via `extends`) are merged first, then local values override
+
+## Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `tasty.enable` | `true` | Enable/disable the extension |
+| `tasty.enableSemanticHighlighting` | `true` | Enable semantic syntax highlighting |
+| `tasty.enableDiagnostics` | `true` | Enable validation and diagnostics |
+| `tasty.enableAutoComplete` | `true` | Enable autocomplete suggestions |
+| `tasty.hoverPreview` | `true` | Show hover information |
+| `tasty.configPath` | `""` | Path to config file (auto-detect if empty) |
+| `tasty.trace.server` | `"off"` | LSP trace level for debugging |
 
 ## Commands
 
-### Development
-- `npm run compile` - Compile TypeScript
-- `npm run watch` - Watch mode for development
+| Command | Description |
+|---------|-------------|
+| `Tasty: Restart Language Server` | Restart the language server (useful after config changes) |
+| `Tasty: Show Current Configuration` | Display the resolved config for the current file |
 
-### Testing  
-- `npm run test:all` - Run all automated tests
-- `npm run test:patterns` - Test individual regex patterns
-- `npm run test:grammar` - Test grammar boundaries and injection
+## Development
 
 ### Building
-- `npm run package` - Build for production
-- `npm run build:vsix` - Create VSIX package (requires Node.js 20+)
-- `npm run build:manual` - Alternative build for manual installation
 
-## Installation for Development
-
-Copy the extension to your VS Code extensions folder:
-
-### macOS/Linux
 ```bash
-cp -r . ~/.vscode/extensions/tasty-syntax-highlighting
+# Install dependencies (root + client + server)
+npm install
+cd client && npm install && cd ..
+cd server && npm install && cd ..
+
+# Build all packages
+npm run build
+
+# Watch mode (for development)
+npm run watch
 ```
 
-### Windows
+### Testing
+
 ```bash
-xcopy /E /I . "%USERPROFILE%\.vscode\extensions\tasty-syntax-highlighting"
+# Run parser tests (tastyParser + stateParser)
+npm run test:all
+
+# Run grammar tests only
+npm run test:grammar
+
+# Run pattern tests only
+npm run test:patterns
 ```
 
-Then restart VS Code.
+Unit tests are located in `test/` directory:
+- `tastyParser.test.ts` - Tests for style value tokenization
+- `stateParser.test.ts` - Tests for state key parsing
+
+### Debugging
+
+1. Open the extension folder in VSCode
+2. Press F5 to launch the Extension Development Host
+3. Use "Attach to Server" launch configuration to debug the language server
+4. Set `tasty.trace.server` to `"verbose"` for detailed LSP communication logs
 
 ## Architecture
 
-The extension uses a TextMate grammar (`syntaxes/tasty.tmLanguage.json`) that is injected into TSX and TS files. It specifically targets strings that are:
+The extension uses the Language Server Protocol (LSP) for:
 
-1. Inside `styles` properties
-2. Inside properties ending with `Styles` (e.g., `inputStyles`, `buttonStyles`)
-3. **NEW**: In variable declarations ending with `styles` (e.g., `const INPUT_STYLES = {...}`, `let buttonStyles = {...}`)
+- **Semantic Tokens**: AST-aware syntax highlighting
+- **Diagnostics**: Real-time validation
+- **Completions**: Context-aware autocomplete
+- **Hover**: Token and property documentation
 
-**Important**: Plain objects that don't match these patterns are left untouched and highlighted as regular TypeScript/TSX code.
+```
+┌─────────────────────────────────────────┐
+│           VSCode Extension              │
+│  ┌─────────────────────────────────┐   │
+│  │     Language Client (client/)   │   │
+│  └─────────────┬───────────────────┘   │
+└────────────────┼────────────────────────┘
+                 │ LSP (JSON-RPC)
+                 ▼
+┌─────────────────────────────────────────┐
+│         Language Server (server/)       │
+│  ┌─────────────────────────────────┐   │
+│  │  TypeScript Parser + Tasty AST  │   │
+│  └─────────────────────────────────┘   │
+│  ┌─────────────────────────────────┐   │
+│  │      Config Resolver/Loader     │   │
+│  └─────────────────────────────────┘   │
+└─────────────────────────────────────────┘
+```
 
-Additionally, JSX attributes that reference a predefined object are ignored. For example, `styles={styles}` or `inputStyles={buttonStyles}` will not trigger Tasty highlighting. Only inline object literals like `inputStyles={{ ... }}` are highlighted.
+## Requirements
 
-The grammar recognizes and highlights various Tasty syntax elements according to the Tasty style parser specification.
+- VSCode 1.74.0 or higher
+- Node.js 20.18.1 or higher (for development)
+
+## Related
+
+- [Tasty Documentation](https://github.com/cube-js/cube-ui-kit) - The Tasty style helper library
+- [@cube-dev/ui-kit](https://www.npmjs.com/package/@cube-dev/ui-kit) - The full UI Kit package
 
 ## License
 

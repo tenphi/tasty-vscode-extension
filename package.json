@@ -1,8 +1,8 @@
 {
   "name": "tasty-syntax-highlighting",
   "displayName": "Tasty Syntax Highlighting",
-  "description": "Syntax highlighting for Tasty CSS-in-JS styles in TSX files",
-  "version": "1.0.6",
+  "description": "Syntax highlighting, validation, and autocomplete for Tasty CSS-in-JS styles",
+  "version": "2.0.0",
   "publisher": "cube-dev",
   "engines": {
     "vscode": "^1.74.0",
@@ -10,64 +10,121 @@
   },
   "categories": [
     "Programming Languages",
-    "Themes"
+    "Linters"
   ],
   "keywords": [
     "tasty",
     "css-in-js",
     "syntax-highlighting",
     "react",
-    "tsx"
+    "tsx",
+    "typescript",
+    "autocomplete",
+    "validation"
   ],
-  "activationEvents": [],
-  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact"
+  ],
+  "main": "./dist/client/extension.js",
   "contributes": {
     "grammars": [
       {
-        "path": "./syntaxes/tasty.tmLanguage.json",
         "scopeName": "source.tasty",
+        "path": "./syntaxes/tasty.tmLanguage.json",
         "injectTo": [
-          "source.tsx",
           "source.ts",
-          "meta.embedded.expression.tsx"
+          "source.tsx"
         ],
         "embeddedLanguages": {
-          "meta.embedded.block.tasty": "tasty"
+          "meta.embedded.block.tasty": "css"
         }
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "Tasty",
+      "properties": {
+        "tasty.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable/disable the Tasty extension"
+        },
+        "tasty.enableSemanticHighlighting": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable semantic syntax highlighting for Tasty styles"
+        },
+        "tasty.enableDiagnostics": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable validation and diagnostics for Tasty styles"
+        },
+        "tasty.enableAutoComplete": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable autocomplete suggestions for Tasty styles"
+        },
+        "tasty.hoverPreview": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show hover information for Tasty tokens and properties"
+        },
+        "tasty.configPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to tasty.config.ts file (defaults to auto-detection)"
+        },
+        "tasty.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Traces the communication between VS Code and the language server"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "tasty.restartServer",
+        "title": "Tasty: Restart Language Server"
+      },
+      {
+        "command": "tasty.showConfig",
+        "title": "Tasty: Show Current Configuration"
       }
     ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run package",
-    "compile": "webpack",
-    "watch": "webpack --watch",
-    "package": "webpack --mode production --devtool hidden-source-map",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "npm run compile-tests && npm run compile && npm run lint",
-    "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js",
-    "test:grammar": "node test-grammar.js",
-    "test:patterns": "node test-patterns.js",
-    "test:all": "npm run test:patterns && npm run test:grammar && node test-injection.js && node test-direct-jsx.js",
-    "test:injection": "node test-injection.js",
-    "test:direct": "node test-direct-jsx.js",
-    "build:vsix": "vsce package",
-    "build:manual": "node build-manual.js"
+    "vscode:prepublish": "npm run build",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "BUILD_TARGET=client vite build",
+    "build:server": "BUILD_TARGET=server vite build",
+    "watch": "npm run watch:client & npm run watch:server",
+    "watch:client": "BUILD_TARGET=client vite build --watch",
+    "watch:server": "BUILD_TARGET=server vite build --watch",
+    "lint": "eslint ./client/src ./server/src ./shared/src --ext .ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rimraf dist",
+    "build:vsix": "vsce package"
   },
   "devDependencies": {
     "@types/node": "^20.18.0",
     "@types/vscode": "^1.74.0",
-    "@typescript-eslint/eslint-plugin": "^5.45.0",
-    "@typescript-eslint/parser": "^5.45.0",
-    "eslint": "^8.28.0",
-    "ts-loader": "^9.4.1",
-    "typescript": "^4.9.4",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
     "@vscode/vsce": "^3.2.0",
+    "eslint": "^8.50.0",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.3.0",
+    "vite": "^5.4.21",
+    "vitest": "^2.0.0",
     "vscode-oniguruma": "^2.0.1",
-    "vscode-textmate": "^9.2.0",
-    "webpack": "^5.75.0",
-    "webpack-cli": "^5.0.0"
+    "vscode-textmate": "^9.2.0"
   },
   "repository": {
     "type": "git",

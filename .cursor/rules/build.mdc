@@ -1,0 +1,22 @@
+---
+description: Build workflow for testing the extension
+alwaysApply: true
+---
+
+# Build Workflow
+
+Before building, increment the patch version in `package.json`:
+
+```bash
+npm version patch
+```
+
+This will automatically increment the patch version (e.g., `2.0.49` → `2.0.50`) and create a git commit.
+
+Then build the VSIX package for testing:
+
+```bash
+npm run build:vsix
+```
+
+This allows the user to test the extension by installing the generated `.vsix` file in VS Code.

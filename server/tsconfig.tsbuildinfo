@@ -1,0 +1,1 @@
+{"root":["./src/builtins.ts","./src/completion.ts","./src/contextdetector.ts","./src/diagnostics.ts","./src/hover.ts","./src/index.ts","./src/semantictokens.ts","./src/server.ts","./src/stateparser.ts","./src/tastyparser.ts","./src/config/index.ts","./src/config/loader.ts","./src/config/resolver.ts"],"version":"5.9.3"}

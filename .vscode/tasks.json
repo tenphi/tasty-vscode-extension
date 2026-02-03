@@ -1,43 +1,51 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "type": "npm",
-            "script": "compile",
-            "label": "npm: compile",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "presentation": {
-                "panel": "dedicated",
-                "reveal": "never"
-            },
-            "problemMatcher": [
-                "$tsc"
-            ]
-        },
-        {
-            "type": "npm",
-            "script": "watch",
-            "label": "npm: watch",
-            "isBackground": true,
-            "group": {
-                "kind": "build"
-            },
-            "presentation": {
-                "panel": "dedicated",
-                "reveal": "never"
-            },
-            "problemMatcher": [
-                "$tsc-watch"
-            ]
-        },
-        {
-            "type": "npm",
-            "script": "pretest",
-            "label": "npm: pretest",
-            "group": "test"
-        }
-    ]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "npm",
+      "script": "build",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$tsc"],
+      "label": "npm: build"
+    },
+    {
+      "type": "npm",
+      "script": "watch",
+      "isBackground": true,
+      "group": "build",
+      "problemMatcher": ["$tsc-watch"],
+      "label": "npm: watch"
+    },
+    {
+      "type": "npm",
+      "script": "build:client",
+      "group": "build",
+      "problemMatcher": ["$tsc"],
+      "label": "npm: build:client"
+    },
+    {
+      "type": "npm",
+      "script": "build:server",
+      "group": "build",
+      "problemMatcher": ["$tsc"],
+      "label": "npm: build:server"
+    },
+    {
+      "type": "npm",
+      "script": "build:shared",
+      "group": "build",
+      "problemMatcher": ["$tsc"],
+      "label": "npm: build:shared"
+    },
+    {
+      "type": "npm",
+      "script": "clean",
+      "group": "build",
+      "problemMatcher": [],
+      "label": "npm: clean"
+    }
+  ]
 }

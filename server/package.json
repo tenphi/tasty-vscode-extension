@@ -1,0 +1,15 @@
+{
+  "name": "tasty-language-server",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./out/server.js",
+  "scripts": {
+    "build": "tsc -b",
+    "watch": "tsc -b -w"
+  },
+  "dependencies": {
+    "typescript": "^5.3.0",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.11"
+  }
+}

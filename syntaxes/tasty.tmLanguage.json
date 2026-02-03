@@ -25,7 +25,8 @@
         },
         {
           "name": "meta.tasty-styles.variable.tsx",
-          "begin": "\\b(const|let|var)\\s+(\\w*[Ss][Tt][Yy][Ll][Ee][Ss])\\s*=\\s*\\{",
+          "comment": "Match variables ending with Styles/styles/STYLES or Tokens/tokens/TOKENS, with optional export and type annotation",
+          "begin": "(?:\\b(?:export)\\s+)?\\b(const|let|var)\\s+(\\w*(?:[Ss][Tt][Yy][Ll][Ee][Ss]|[Tt][Oo][Kk][Ee][Nn][Ss]))(?:\\s*:\\s*[\\w<>\\[\\],\\s|&]+)?\\s*=\\s*\\{",
           "end": "\\}",
           "contentName": "meta.embedded.block.tasty",
           "beginCaptures": {
@@ -34,6 +35,46 @@
             },
             "2": {
               "name": "entity.name.tag.tsx"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#comments"
+            },
+            {
+              "include": "#template-strings"
+            },
+            {
+              "include": "#tasty-object-property"
+            },
+            {
+              "include": "#tasty-nested-object"
+            },
+            {
+              "match": ",",
+              "name": "punctuation.separator.comma.tsx"
+            },
+            {
+              "match": "\\s+",
+              "name": "source.tsx"
+            }
+          ]
+        },
+        {
+          "name": "meta.tasty-styles.typed.tsx",
+          "comment": "Match variables with explicit Styles type annotation (e.g., const foo: Styles = { ... })",
+          "begin": "(?:\\b(?:export)\\s+)?\\b(const|let|var)\\s+(\\w+)\\s*:\\s*(Styles)\\s*=\\s*\\{",
+          "end": "\\}",
+          "contentName": "meta.embedded.block.tasty",
+          "beginCaptures": {
+            "1": {
+              "name": "storage.type.tsx"
+            },
+            "2": {
+              "name": "variable.other.constant.tsx"
+            },
+            "3": {
+              "name": "entity.name.type.tsx"
             }
           },
           "patterns": [
@@ -130,6 +171,25 @@
     },
     "tasty-object-property": {
       "patterns": [
+        {
+          "comment": "Keyframe step keys: '0%', '50%', '0%, 100%', 'from', 'to'",
+          "name": "meta.object-property.keyframe-step.tasty",
+          "match": "(['\"`])((?:\\d+%(?:\\s*,\\s*\\d+%)*)|from|to)(\\1)\\s*(:)",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.tsx"
+            },
+            "2": {
+              "name": "constant.numeric.keyframe-step.tasty"
+            },
+            "3": {
+              "name": "punctuation.definition.string.end.tsx"
+            },
+            "4": {
+              "name": "punctuation.separator.key-value.tsx"
+            }
+          }
+        },
         {
           "comment": "Quoted custom property definition keys: '$property':",
           "name": "meta.object-property.custom-property-quoted.tasty",
@@ -377,6 +437,44 @@
           ]
         },
         {
+          "comment": "Quoted @keyframes property key",
+          "name": "meta.object-property.at-rule.tasty",
+          "match": "(['\"`])(@keyframes|@properties)(\\1)\\s*(:)",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.tsx"
+            },
+            "2": {
+              "name": "keyword.control.at-rule.tasty"
+            },
+            "3": {
+              "name": "punctuation.definition.string.end.tsx"
+            },
+            "4": {
+              "name": "punctuation.separator.key-value.tsx"
+            }
+          }
+        },
+        {
+          "comment": "Quoted color token definition key: '#primary':",
+          "name": "meta.object-property.color-token.tasty",
+          "match": "(['\"`])(#[a-zA-Z][a-zA-Z0-9_-]*)(\\1)\\s*(:)",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.tsx"
+            },
+            "2": {
+              "name": "support.constant.color.tasty-token"
+            },
+            "3": {
+              "name": "punctuation.definition.string.end.tsx"
+            },
+            "4": {
+              "name": "punctuation.separator.key-value.tsx"
+            }
+          }
+        },
+        {
           "name": "meta.object-property.unquoted.tasty",
           "begin": "([a-zA-Z_][a-zA-Z0-9_$-]*)\\s*:",
           "end": "(?=,|\\})",
@@ -599,9 +697,6 @@
           "include": "#strings"
         },
         {
-          "include": "#tasty-properties"
-        },
-        {
           "include": "#operators"
         }
       ]
@@ -631,6 +726,49 @@
     },
     "custom-properties": {
       "patterns": [
+        {
+          "name": "variable.other.constant.tasty",
+          "match": "\\$\\$[a-zA-Z_][a-zA-Z0-9_-]*",
+          "comment": "Property name reference $$name → --name (used in transition, will-change)"
+        },
+        {
+          "name": "support.constant.color.tasty-token",
+          "match": "##[a-zA-Z_][a-zA-Z0-9_-]*",
+          "comment": "Color property name reference ##name → --name-color (used in transition)"
+        },
+        {
+          "name": "meta.function-call.color-fallback.tasty",
+          "comment": "Color token with fallback: (#primary, #secondary)",
+          "begin": "(\\()(#[a-zA-Z][a-zA-Z0-9_-]*(?:\\.[0-9$][a-zA-Z0-9_-]*)?)(\\s*,\\s*)",
+          "end": "\\)",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.fallback.begin.tasty"
+            },
+            "2": {
+              "name": "support.constant.color.tasty-token"
+            },
+            "3": {
+              "name": "punctuation.separator.comma.tasty"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.fallback.end.tasty"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#custom-properties"
+            },
+            {
+              "include": "#hash-colors"
+            },
+            {
+              "include": "#tasty-syntax"
+            }
+          ]
+        },
         {
           "name": "meta.function-call.custom-property.tasty",
           "begin": "\\((\\$[a-zA-Z_][a-zA-Z0-9_-]*)(\\s*,\\s*)",
@@ -667,14 +805,24 @@
     "hash-colors": {
       "patterns": [
         {
+          "name": "support.constant.color.tasty-token",
+          "match": "##[a-zA-Z_][a-zA-Z0-9_-]*",
+          "comment": "Color property name reference ##name → --name-color (used in transition, will-change)"
+        },
+        {
+          "name": "support.constant.color.tasty-token.builtin",
+          "match": "#current(?:\\.[0-9$][a-zA-Z0-9_-]*)?\\b",
+          "comment": "Reserved color token #current for currentcolor, with optional opacity"
+        },
+        {
           "name": "constant.other.color.tasty-token",
-          "match": "#([a-zA-Z][a-zA-Z0-9_-]*(?:\\.[0-9]+)?)",
+          "match": "#([a-zA-Z][a-zA-Z0-9_-]*(?:\\.[0-9$][a-zA-Z0-9_-]*)?)",
           "captures": {
             "0": {
               "name": "support.constant.color.tasty-token"
             }
           },
-          "comment": "Tasty color tokens like #primary, #surface, #primary.5"
+          "comment": "Tasty color tokens like #primary, #surface, #primary.5, #primary.$opacity"
         },
         {
           "name": "constant.other.color.hex",
@@ -755,6 +903,11 @@
           "match": "\\b(none|auto|max-content|min-content|fit-content|stretch|true|false)\\b"
         },
         {
+          "name": "support.constant.property-value.tasty-display",
+          "match": "\\b(flex|grid|block|inline|inline-flex|inline-grid|inline-block|contents|flow-root)\\b",
+          "comment": "CSS display values"
+        },
+        {
           "name": "support.constant.property-value.tasty-directional",
           "match": "\\b(top|right|bottom|left|center)\\b"
         },
@@ -765,11 +918,102 @@
         {
           "name": "support.constant.property-value.tasty-shape",
           "match": "\\b(round|ellipse|leaf|backleaf)\\b"
+        },
+        {
+          "name": "support.constant.property-value.tasty-scrollbar",
+          "match": "\\b(thin|styled|stable|both-edges|always)\\b",
+          "comment": "Scrollbar modifier keywords"
+        },
+        {
+          "comment": "CSS @property syntax types",
+          "name": "support.constant.property-value.css-syntax",
+          "match": "<(color|angle|length|number|percentage|length-percentage|integer|custom-ident|image|url|time|resolution|transform-function|transform-list)>"
         }
       ]
     },
     "state-selectors": {
       "patterns": [
+        {
+          "comment": "Advanced @media state with parentheses content",
+          "name": "meta.advanced-state.media.tasty",
+          "begin": "(@media)\\s*(\\()",
+          "end": "\\)",
+          "beginCaptures": {
+            "1": {
+              "name": "keyword.control.at-rule.media.tasty"
+            },
+            "2": {
+              "name": "punctuation.section.media-query.begin.tasty"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.media-query.end.tasty"
+            }
+          },
+          "patterns": [
+            { "include": "#advanced-state-inner" }
+          ]
+        },
+        {
+          "comment": "Advanced @root/@own/@supports states with parentheses",
+          "name": "meta.advanced-state.tasty",
+          "begin": "(@(?:root|own|supports))\\s*(\\()",
+          "end": "\\)",
+          "beginCaptures": {
+            "1": {
+              "name": "keyword.control.at-rule.tasty"
+            },
+            "2": {
+              "name": "punctuation.section.advanced-state.begin.tasty"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.advanced-state.end.tasty"
+            }
+          },
+          "patterns": [
+            { "include": "#advanced-state-inner" }
+          ]
+        },
+        {
+          "comment": "Container query shorthand @(...)",
+          "name": "meta.advanced-state.container.tasty",
+          "begin": "(@)\\s*(\\()",
+          "end": "\\)",
+          "beginCaptures": {
+            "1": {
+              "name": "keyword.control.at-rule.container.tasty"
+            },
+            "2": {
+              "name": "punctuation.section.container-query.begin.tasty"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.container-query.end.tasty"
+            }
+          },
+          "patterns": [
+            { "include": "#advanced-state-inner" }
+          ]
+        },
+        {
+          "comment": "@starting state (no parentheses)",
+          "name": "keyword.control.at-rule.starting.tasty",
+          "match": "@starting\\b"
+        },
+        {
+          "comment": "@media:type syntax (e.g., @media:print)",
+          "name": "keyword.control.at-rule.media-type.tasty",
+          "match": "@media:[a-z][a-z0-9-]*"
+        },
+        {
+          "comment": "State alias like @mobile, @tablet, @dark",
+          "name": "keyword.control.state-alias.tasty",
+          "match": "@[a-zA-Z][a-zA-Z0-9_-]*"
+        },
         {
           "name": "meta.attribute-selector.tasty",
           "match": "([a-zA-Z_][a-zA-Z0-9_-]*)(=)(\")([^\"]*)(\")",
@@ -1045,22 +1289,6 @@
         }
       ]
     },
-    "tasty-properties": {
-      "patterns": [
-        {
-          "name": "support.type.property-name.tasty",
-          "match": "\\b(fill|radius|preset|flow|gap|align|justify|place|inset|fade|scrollbar|transition)\\b"
-        },
-        {
-          "name": "support.type.property-name.tasty-layout",
-          "match": "\\b(padding|margin|width|height|display|hide)\\b"
-        },
-        {
-          "name": "support.type.property-name.tasty-border",
-          "match": "\\b(border|border-top|border-right|border-bottom|border-left)\\b"
-        }
-      ]
-    },
     "state-logic-operators": {
       "patterns": [
         {
@@ -1107,9 +1335,141 @@
             },
             {
               "include": "#color-functions"
+            },
+            {
+              "include": "#functions"
+            },
+            {
+              "include": "#css-with-units"
+            },
+            {
+              "include": "#custom-units"
+            },
+            {
+              "include": "#bare-numbers"
+            },
+            {
+              "include": "#operators"
             }
           ],
           "comment": "Recursive grouping for logical expressions to support nested highlighting"
+        }
+      ]
+    },
+    "advanced-state-inner": {
+      "comment": "Patterns for content inside @media(), @root(), @own(), @supports(), @() parentheses",
+      "patterns": [
+        {
+          "comment": "Comparison operators: <=, >=, <, >, =",
+          "name": "keyword.operator.comparison.tasty",
+          "match": "<=|>=|<|>|="
+        },
+        {
+          "comment": "Logical operators inside advanced states",
+          "name": "keyword.operator.logical.tasty",
+          "match": "&|\\||!"
+        },
+        {
+          "comment": "Comma separator",
+          "name": "punctuation.separator.comma.tasty",
+          "match": ","
+        },
+        {
+          "comment": "CSS units with numbers (768px, 50vh, etc.)",
+          "name": "constant.numeric.css-with-unit.tasty",
+          "match": "[+-]?(?:\\d*\\.\\d+|\\d+)(px|em|rem|vh|vw|vmin|vmax|%|ch|ex|cm|mm|in|pt|pc)"
+        },
+        {
+          "comment": "Custom units (like 40x for gap-based queries)",
+          "name": "constant.numeric.custom-unit.tasty",
+          "match": "[+-]?(?:\\d*\\.\\d+|\\d+)([a-z][a-z0-9]*)"
+        },
+        {
+          "comment": "Bare numbers",
+          "name": "constant.numeric.tasty",
+          "match": "[+-]?(?:\\d*\\.\\d+|\\d+)"
+        },
+        {
+          "comment": "Style query value modifier: $variant=danger or $name",
+          "name": "meta.style-query.tasty",
+          "match": "(\\$[a-zA-Z_][a-zA-Z0-9_-]*)(=)([a-zA-Z0-9_-]+)",
+          "captures": {
+            "1": {
+              "name": "variable.other.constant.tasty"
+            },
+            "2": {
+              "name": "keyword.operator.assignment.tasty"
+            },
+            "3": {
+              "name": "string.unquoted.attribute-value.tasty"
+            }
+          }
+        },
+        {
+          "comment": "Style query property check: $variant",
+          "name": "variable.other.constant.tasty",
+          "match": "\\$[a-zA-Z_][a-zA-Z0-9_-]*"
+        },
+        {
+          "comment": "Value modifier inside @root: theme=dark",
+          "name": "meta.attribute-selector.tasty",
+          "match": "([a-zA-Z_][a-zA-Z0-9_-]*)(=)([a-zA-Z0-9_-]+)",
+          "captures": {
+            "1": {
+              "name": "entity.other.attribute-name.tasty"
+            },
+            "2": {
+              "name": "keyword.operator.attribute-selector.tasty"
+            },
+            "3": {
+              "name": "string.unquoted.attribute-value.tasty"
+            }
+          }
+        },
+        {
+          "comment": "Class selector: .active",
+          "name": "entity.name.tag.class.css",
+          "match": "\\.[a-z][a-z0-9-]+"
+        },
+        {
+          "comment": "Attribute selector: [attr] or [attr=\"value\"]",
+          "name": "meta.attribute-selector.tasty",
+          "begin": "\\[",
+          "end": "\\]",
+          "beginCaptures": {
+            "0": { "name": "punctuation.definition.attribute-selector.begin.tasty" }
+          },
+          "endCaptures": {
+            "0": { "name": "punctuation.definition.attribute-selector.end.tasty" }
+          },
+          "patterns": [
+            {
+              "match": "([a-zA-Z_][a-zA-Z0-9_-]*)(=)(\"|')([^\"']*)(\\3)",
+              "captures": {
+                "1": { "name": "entity.other.attribute-name.tasty" },
+                "2": { "name": "keyword.operator.attribute-selector.tasty" },
+                "3": { "name": "punctuation.definition.string.begin.tasty" },
+                "4": { "name": "string.quoted.attribute-value.tasty" },
+                "5": { "name": "punctuation.definition.string.end.tasty" }
+              }
+            },
+            {
+              "match": "([a-zA-Z_][a-zA-Z0-9_-]*)",
+              "captures": {
+                "1": { "name": "entity.other.attribute-name.tasty" }
+              }
+            }
+          ]
+        },
+        {
+          "comment": "Dimension shorthand identifiers: w, h, width, height",
+          "name": "support.constant.property-value.tasty",
+          "match": "\\b(w|h|width|height|inline-size|block-size)\\b"
+        },
+        {
+          "comment": "Boolean modifier inside @own/@root",
+          "name": "support.constant.property-value.tasty-state",
+          "match": "\\b[a-z][a-z0-9-]*\\b"
         }
       ]
     }
