@@ -539,9 +539,11 @@ const DEFAULT_STYLES = {
 const STYLES = [...BASE_STYLES, ...BLOCK_STYLES];
 
 // 14. JSX Component Style Props
-// Style props on components (capitalized) should be highlighted
-// Regular HTML tags should NOT have style prop highlighting
-const ComponentStyleProps = () => (
+// Style props on components (capitalized) are highlighted when:
+// - The component name starts with uppercase
+// - The prop name is a known style property
+// - The value is a string literal or object notation {{ ... }}
+const StylePropsShowcase = () => (
   <>
     {/* Component style props - SHOULD be highlighted */}
     <FlexContainer
@@ -554,8 +556,10 @@ const ComponentStyleProps = () => (
       border="1bw solid #border"
       width="max 800px"
       height="min 200px"
-      onClick={() => {}}  // Not a style prop
-      className="wrapper" // Not a style prop
+      onClick={() => {}}  // Not a style prop - normal highlighting
+      className="wrapper" // Not a style prop - normal highlighting
+      autoHideActions     // Boolean prop - normal highlighting
+      data-mode="test"    // Hyphenated prop - normal highlighting
     >
       Content
     </FlexContainer>
@@ -576,7 +580,7 @@ const ComponentStyleProps = () => (
 
     {/* Plain HTML tags - should NOT highlight style props */}
     <div gap="2x" fill="#surface">
-      Not highlighted
+      Not highlighted because div is lowercase
     </div>
   </>
 );
