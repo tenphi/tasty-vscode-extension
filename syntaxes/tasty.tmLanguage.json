@@ -191,6 +191,47 @@
           }
         },
         {
+          "comment": "Quoted selector affix key: '$':",
+          "name": "meta.object-property.selector-affix.tasty",
+          "begin": "(['\"`])(\\$)(\\1)\\s*(:)",
+          "end": "(?=,|\\})",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.tsx"
+            },
+            "2": {
+              "name": "keyword.operator.selector-affix.tasty"
+            },
+            "3": {
+              "name": "punctuation.definition.string.end.tsx"
+            },
+            "4": {
+              "name": "punctuation.separator.key-value.tsx"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#tasty-selector-affix-value"
+            }
+          ]
+        },
+        {
+          "comment": "Selector affix key: $:",
+          "name": "meta.object-property.selector-affix.tasty",
+          "begin": "(\\$)\\s*:",
+          "end": "(?=,|\\})",
+          "beginCaptures": {
+            "1": {
+              "name": "keyword.operator.selector-affix.tasty"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#tasty-selector-affix-value"
+            }
+          ]
+        },
+        {
           "comment": "Quoted custom property definition keys: '$property':",
           "name": "meta.object-property.custom-property-quoted.tasty",
           "match": "(['\"`])(\\$[a-zA-Z_][a-zA-Z0-9_-]*)(\\1)\\s*(:)",
@@ -627,6 +668,172 @@
               "include": "#tasty-syntax"
             }
           ]
+        }
+      ]
+    },
+    "tasty-selector-affix-value": {
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#tasty-selector-affix-string"
+        },
+        {
+          "include": "#tasty-non-string-value"
+        },
+        {
+          "match": "\\s+",
+          "name": "source.tsx"
+        }
+      ]
+    },
+    "tasty-selector-affix-string": {
+      "patterns": [
+        {
+          "begin": "(['\"`])",
+          "end": "\\1",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.tsx"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.definition.string.end.tsx"
+            }
+          },
+          "contentName": "meta.embedded.block.selector-affix.tasty",
+          "patterns": [
+            {
+              "include": "#selector-affix-syntax"
+            }
+          ]
+        }
+      ]
+    },
+    "selector-affix-syntax": {
+      "patterns": [
+        {
+          "include": "#selector-affix-combinators"
+        },
+        {
+          "include": "#selector-affix-placeholder"
+        },
+        {
+          "include": "#selector-affix-pseudo"
+        },
+        {
+          "include": "#selector-affix-class"
+        },
+        {
+          "include": "#selector-affix-attribute"
+        },
+        {
+          "include": "#selector-affix-sub-element"
+        },
+        {
+          "include": "#selector-affix-tag"
+        }
+      ]
+    },
+    "selector-affix-combinators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.selector.combinator.tasty",
+          "match": "(\\>|\\+|~)"
+        }
+      ]
+    },
+    "selector-affix-placeholder": {
+      "patterns": [
+        {
+          "name": "variable.language.placeholder.tasty",
+          "match": "@"
+        }
+      ]
+    },
+    "selector-affix-pseudo": {
+      "patterns": [
+        {
+          "name": "meta.selector.pseudo.tasty",
+          "match": "(::?)([a-zA-Z-]+)",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.pseudo-class.tasty"
+            },
+            "2": {
+              "name": "entity.other.attribute-name.pseudo-class.tasty"
+            }
+          }
+        }
+      ]
+    },
+    "selector-affix-class": {
+      "patterns": [
+        {
+          "name": "meta.selector.class.tasty",
+          "match": "(\\.)([a-zA-Z_][a-zA-Z0-9_-]*)",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.class.tasty"
+            },
+            "2": {
+              "name": "entity.other.attribute-name.class.tasty"
+            }
+          }
+        }
+      ]
+    },
+    "selector-affix-attribute": {
+      "patterns": [
+        {
+          "name": "meta.selector.attribute.tasty",
+          "begin": "\\[",
+          "end": "\\]",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.attribute-selector.begin.tasty"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.attribute-selector.end.tasty"
+            }
+          },
+          "patterns": [
+            {
+              "name": "entity.other.attribute-name.tasty",
+              "match": "[a-zA-Z_][a-zA-Z0-9_-]*"
+            },
+            {
+              "name": "keyword.operator.attribute-selector.tasty",
+              "match": "\\*?[~|^$]?="
+            },
+            {
+              "include": "#strings"
+            },
+            {
+              "name": "string.unquoted.attribute-value.tasty",
+              "match": "[a-zA-Z0-9_-]+"
+            }
+          ]
+        }
+      ]
+    },
+    "selector-affix-sub-element": {
+      "patterns": [
+        {
+          "name": "entity.name.type.tasty",
+          "match": "\\b[A-Z][A-Za-z0-9_]*\\b"
+        }
+      ]
+    },
+    "selector-affix-tag": {
+      "patterns": [
+        {
+          "name": "entity.name.tag.tasty",
+          "match": "\\b[a-z][a-z0-9-]*\\b"
         }
       ]
     },
