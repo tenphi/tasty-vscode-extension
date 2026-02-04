@@ -2,7 +2,7 @@
   "name": "tasty-syntax-highlighting",
   "displayName": "Tasty Syntax Highlighting",
   "description": "Syntax highlighting, validation, and autocomplete for Tasty CSS-in-JS styles",
-  "version": "2.0.1",
+  "version": "2.0.3",
   "publisher": "cube-dev",
   "engines": {
     "vscode": "^1.74.0",

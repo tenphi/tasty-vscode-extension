@@ -537,3 +537,46 @@ const DEFAULT_STYLES = {
   }, {}),
 };
 const STYLES = [...BASE_STYLES, ...BLOCK_STYLES];
+
+// 14. JSX Component Style Props
+// Style props on components (capitalized) should be highlighted
+// Regular HTML tags should NOT have style prop highlighting
+const ComponentStyleProps = () => (
+  <>
+    {/* Component style props - SHOULD be highlighted */}
+    <FlexContainer
+      gap="2x"
+      align="center"
+      justify="space-between"
+      fill="#surface"
+      padding="3x 4x"
+      radius="1r"
+      border="1bw solid #border"
+      width="max 800px"
+      height="min 200px"
+      onClick={() => {}}  // Not a style prop
+      className="wrapper" // Not a style prop
+    >
+      Content
+    </FlexContainer>
+
+    {/* Object notation for style props */}
+    <Button
+      fill={{
+        '': '#primary',
+        'hovered': '#primary.8',
+        'pressed': '#primary.6',
+      }}
+      color="#white"
+      padding="2x 4x"
+    />
+
+    {/* Multiple style props on same line */}
+    <Box gap="1x" flow="row" align="start" />
+
+    {/* Plain HTML tags - should NOT highlight style props */}
+    <div gap="2x" fill="#surface">
+      Not highlighted
+    </div>
+  </>
+);

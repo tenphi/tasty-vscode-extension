@@ -111,8 +111,36 @@ Used for syntax highlighting (regex-based injection into TypeScript/TSX):
 | `*Tokens/*TOKENS = { ... }` | Variable with Tokens suffix | `const BASE_TOKENS = { ... }` |
 | `: Styles = { ... }` | Explicit Styles type annotation | `const x: Styles = { ... }` |
 | `export const ... = { ... }` | Supports optional `export` prefix | `export const STYLES = { ... }` |
+| `<Component prop="value">` | JSX component style props | `<Flex gap="2x" fill="#surface">` |
 
 **Note**: TextMate patterns support `as const` suffix and type annotations like `: Styles`.
+
+### JSX Component Style Props
+
+Style props on React components (capitalized names) are automatically highlighted when:
+
+1. The component name starts with uppercase (e.g., `FlexContainer`, not `div`)
+2. The prop name is a known style property
+3. The value is a string literal or object notation `{{ ... }}`
+
+**Supported style properties:**
+- **Base**: `display`, `font`, `preset`, `hide`, `whiteSpace`, `opacity`, `transition`
+- **Position**: `gridArea`, `order`, `gridColumn`, `gridRow`, `placeSelf`, `alignSelf`, `justifySelf`, `zIndex`, `margin`, `inset`, `position`
+- **Block**: `reset`, `padding`, `paddingInline`, `paddingBlock`, `overflow`, `scrollbar`, `textAlign`, `border`, `radius`, `shadow`, `outline`
+- **Color**: `color`, `fill`, `fade`, `image`
+- **Text**: `textTransform`, `fontWeight`, `fontStyle`
+- **Dimension**: `width`, `height`, `flexBasis`, `flexGrow`, `flexShrink`, `flex`
+- **Flow**: `flow`, `placeItems`, `placeContent`, `alignItems`, `alignContent`, `justifyItems`, `justifyContent`, `align`, `justify`, `gap`, `columnGap`, `rowGap`, `gridColumns`, `gridRows`, `gridTemplate`, `gridAreas`
+
+**Example:**
+```tsx
+<FlexContainer
+  gap="2x"              // Highlighted - gap is a style prop
+  align="center"        // Highlighted - align is a style prop
+  fill="#surface"       // Highlighted - fill is a style prop
+  onClick={handleClick} // Not highlighted - onClick is not a style prop
+>
+```
 
 ---
 
@@ -129,6 +157,7 @@ Used for syntax highlighting (regex-based injection into TypeScript/TSX):
 | Boolean modifiers | `hovered`, `pressed`, `disabled` |
 | Value modifiers | `theme=dark`, `size="large"` |
 | Pseudo-classes | `:hover`, `:focus-visible` |
+| Pseudo-class functions | `:has(> Icon)`, `:nth-of-type(odd)`, `:is(.a, .b)` |
 | Class selectors | `.active`, `.special` |
 | Attribute selectors | `[disabled]`, `[aria-expanded="true"]` |
 | Logical operators | `&`, `\|`, `!`, `^` |
@@ -470,6 +499,29 @@ The extension uses **TextMate grammar** for syntax highlighting instead of LSP s
 When `tasty.config.ts` changes, diagnostics are recomputed but **VSCode may not refresh the editor display** until the file is edited.
 
 **Workaround**: Make a small edit in the affected file.
+
+### Pseudo-Class Function Highlighting
+
+Pseudo-class functions like `:has()`, `:is()`, `:where()`, `:not()`, and `:nth-of-type()` are parsed with proper tokenization of their inner content:
+
+| Part | Highlighting | Example |
+|------|-------------|---------|
+| Colon | Punctuation | `:` in `:has()` |
+| Function name | Pseudo-class name | `has`, `nth-of-type` |
+| Parentheses | Punctuation | `(`, `)` |
+| Combinators | Operator | `>`, `+`, `~` |
+| Sub-elements | Type name | `Icon`, `Prefix` (capitalized) |
+| Class selectors | Class name | `.active`, `.highlighted` |
+| Element tags | Tag name | `div`, `span` |
+| Numeric expressions | Numeric | `odd`, `even`, `2n+1` |
+
+Example: `:has(> Icon)` is highlighted as:
+- `:` - punctuation
+- `has` - pseudo-class name
+- `(` - punctuation
+- `>` - combinator operator
+- `Icon` - sub-element type name
+- `)` - punctuation
 
 ### Token Highlighting
 
