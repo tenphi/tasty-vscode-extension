@@ -580,7 +580,7 @@ const StylePropsShowcase = () => (
 
     {/* Plain HTML tags - should NOT highlight style props */}
     <div gap="2x" fill="#surface">
-      Not highlighted because div is lowercase
+      Not highlighted because div-test is lowercase
     </div>
   </>
 );
