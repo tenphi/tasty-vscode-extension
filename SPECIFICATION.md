@@ -488,6 +488,36 @@ The extension uses **TextMate grammar** for syntax highlighting instead of LSP s
 2. **TextMate injection**: Works reliably without conflicts via `L:source.tsx` injection
 3. **Trade-offs**: No AST context, regex-based patterns, but works across all editor states
 
+### JSX Style Prop Name Highlighting
+
+**Limitation**: Only the first style prop name on a JSX element may be highlighted. Subsequent style prop names on the same element may not receive highlighting.
+
+```tsx
+<Flex
+  gap="2x"        // ✓ "gap" highlighted as style prop
+  fill="#primary" // ✗ "fill" may NOT be highlighted (but value "#primary" IS highlighted)
+  padding="1x"    // ✗ "padding" may NOT be highlighted (but value "1x" IS highlighted)
+>
+```
+
+**Root Cause**: This is a fundamental limitation of TextMate grammar injection:
+
+1. TextMate injections compete with the host grammar (TypeScript/TSX) for token ownership
+2. When the TypeScript grammar tokenizes JSX attributes, it assigns `entity.other.attribute-name.tsx` scope to attribute names
+3. Our injection pattern applies `support.type.property-name.tasty` scope, but due to how VSCode's TextMate engine resolves scope conflicts, the first match may work while subsequent matches on the same element may not
+4. This is a "longest match wins" and priority ordering issue that cannot be reliably solved with regex-based injection
+
+**What DOES work**:
+- Style prop **values** are always highlighted (color tokens, units, etc.)
+- Validation works for all style props (via the language server)
+- Autocomplete works for all style prop values (via the language server)
+- Hover information works for all style prop values (via the language server)
+
+**Why we can't use LSP semantic tokens instead**:
+- VSCode's built-in TypeScript language server emits its own semantic tokens
+- When multiple language servers emit semantic tokens for the same file, they conflict
+- There's no reliable way to merge or prioritize semantic tokens from different sources
+
 ### Autocomplete Limitations
 
 1. **Tokens with hyphens**: Tokens like `#surface-hover` may not autocomplete correctly due to VSCode's word boundary handling
@@ -539,6 +569,82 @@ Token prefixes are unified for consistent highlighting:
 | Token | Description |
 |-------|-------------|
 | `#current` | Maps to CSS `currentcolor`, supports opacity: `#current.5` |
+
+---
+
+## Architecture Notes
+
+### JSX Style Props vs Style Objects
+
+The extension treats style props on JSX components differently from style objects:
+
+| Context | Detection | Highlighting | Validation | Autocomplete |
+|---------|-----------|--------------|------------|--------------|
+| `tasty({ styles: {...} })` | AST-based | TextMate | Full | Full |
+| `styles={{ ... }}` prop | AST-based | TextMate | Full | Full |
+| `gap="2x"` JSX prop | AST-based | TextMate (limited) | Full | Full |
+
+**JSX Style Props** (like `gap="2x"`, `fill="#primary"`) are:
+1. Detected by scanning all JSX attributes in the file
+2. Filtered to only include known tasty style property names (from `builtins.ts`)
+3. Validated by parsing the string value with the tasty parser
+4. Supported for autocomplete and hover in the value position
+
+### Language Server vs TextMate Grammar
+
+| Feature | Implementation | Works for JSX Props |
+|---------|---------------|---------------------|
+| Syntax Highlighting (prop names) | TextMate | Partial (first only) |
+| Syntax Highlighting (values) | TextMate | Yes |
+| Validation | Language Server | Yes |
+| Autocomplete | Language Server | Yes |
+| Hover | Language Server | Yes |
+| Go-to-Definition | Language Server | Yes |
+
+The language server uses TypeScript's compiler API to parse the AST, which provides accurate detection of all JSX style props regardless of their position.
+
+### Source File Caching
+
+The extension caches parsed source files and detected contexts to avoid re-parsing on every request:
+
+```typescript
+interface DocumentCache {
+  version: number;
+  sourceFile: ts.SourceFile;
+  contexts: DetectedStyleObject[];      // Style objects (tasty(), styles prop, etc.)
+  jsxStyleProps: DetectedJsxStyleProp[]; // Individual JSX style props
+}
+```
+
+Both style objects and JSX style props are detected and cached together, ensuring consistent behavior across validation, completion, and hover features.
+
+### Plain Text Leakage Prevention
+
+A key challenge with TextMate grammar injection is preventing "style leakage" where plain English text gets incorrectly highlighted as tasty syntax.
+
+**Problem**: Patterns like `center`, `solid`, `true` are valid CSS values but also common English words. If injected too broadly, they would highlight in comments, JSX children, and string literals.
+
+**Solution**: The grammar uses targeted injection strategies:
+
+1. **String-quoted patterns** (`safe-string-value-patterns`): Only match inside quoted strings that start with specific prefixes (like `#` for color tokens)
+2. **Context-aware patterns**: Style object patterns only activate inside specific syntactic contexts (`{{ }}`, `styles: { }`, etc.)
+3. **Prop name lookahead**: Style prop names are only highlighted when followed by `=`
+
+**Patterns that are safe to inject globally**:
+- Color tokens: `#primary`, `#dark-02` (the `#` prefix makes them unambiguous)
+- Dimension units: `2x`, `16px`, `100%` (number prefix makes them unambiguous)
+
+**Patterns that require context**:
+- Keywords: `center`, `solid`, `true`, `column` (common English words)
+- Functions: `calc()`, `rgb()` (could appear in non-style contexts)
+
+### Debugging TextMate Grammars
+
+When investigating highlighting issues:
+
+1. **Inspect scopes**: Use VSCode's "Developer: Inspect Editor Tokens and Scopes" command
+2. **Test patterns**: Create test scripts using `vscode-textmate` library (see `/scripts/test-grammar.js`)
+3. **Check injection order**: `L:` prefix injects before host grammar, `R:` injects after
 
 ---
 
