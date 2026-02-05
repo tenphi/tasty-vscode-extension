@@ -12,7 +12,7 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { TastyToken, TastyTokenType } from '../../shared/src/types';
 import { MergedConfig } from '../../shared/src/configTypes';
-import { DetectedStyleObject, getStyleProperties } from './contextDetector';
+import { DetectedStyleObject, DetectedJsxStyleProp, getStyleProperties } from './contextDetector';
 import { parseValue } from './tastyParser';
 import { parseStateKey } from './stateParser';
 import { ALL_STYLE_PROPERTIES } from './builtins';
@@ -119,15 +119,61 @@ export function provideSemanticTokens(
   sourceFile: ts.SourceFile,
   contexts: DetectedStyleObject[],
   config: MergedConfig,
+  jsxStyleProps: DetectedJsxStyleProp[] = [],
 ): SemanticTokensBuilder {
   const builder = new SemanticTokensBuilder();
 
-  // Process each context
+  // Process each style context (tasty(), styles prop, etc.)
   for (const { context, node } of contexts) {
     processStyleObject(document, builder, node, sourceFile, config, 0);
   }
 
+  // Process JSX style props (gap="2x", fill="#primary", etc.)
+  for (const prop of jsxStyleProps) {
+    processJsxStyleProp(document, builder, prop, config);
+  }
+
   return builder;
+}
+
+/**
+ * Process a single JSX style prop and emit semantic tokens.
+ */
+function processJsxStyleProp(
+  document: TextDocument,
+  builder: SemanticTokensBuilder,
+  prop: DetectedJsxStyleProp,
+  config: MergedConfig,
+): void {
+  // Emit token for the property name
+  const namePos = document.positionAt(prop.propNameStart);
+  const isBuiltIn = ALL_STYLE_PROPERTIES.includes(prop.propName);
+
+  if (isBuiltIn) {
+    builder.push(
+      namePos.line,
+      namePos.character,
+      prop.propNameEnd - prop.propNameStart,
+      0, // property
+      1 << 3, // defaultLibrary modifier
+    );
+  } else {
+    // Unknown or custom property (shouldn't happen for JSX style props)
+    builder.push(
+      namePos.line,
+      namePos.character,
+      prop.propNameEnd - prop.propNameStart,
+      0, // property
+      1 << 4, // deprecated modifier
+    );
+  }
+
+  // Emit tokens for the value if it's a string literal
+  if (prop.isStringValue && prop.value !== undefined) {
+    // Value is inside quotes, so add 1 for the opening quote
+    const valueOffset = prop.valueStart + 1;
+    processStyleValue(document, builder, prop.value, valueOffset, config);
+  }
 }
 
 /**

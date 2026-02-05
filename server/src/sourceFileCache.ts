@@ -7,7 +7,13 @@
 
 import * as ts from 'typescript';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { DetectedStyleObject, detectContexts, DetectionOptions } from './contextDetector';
+import {
+  DetectedStyleObject,
+  DetectedJsxStyleProp,
+  detectContexts,
+  detectAllJsxStyleProps,
+  DetectionOptions,
+} from './contextDetector';
 
 /**
  * Cached document data.
@@ -16,6 +22,7 @@ interface DocumentCache {
   version: number;
   sourceFile: ts.SourceFile;
   contexts: DetectedStyleObject[];
+  jsxStyleProps: DetectedJsxStyleProp[];
 }
 
 /**
@@ -61,13 +68,15 @@ export function getSourceFile(document: TextDocument): ts.SourceFile {
     getScriptKind(document.uri),
   );
 
-  // Detect contexts as well
+  // Detect contexts and JSX style props
   const contexts = detectContexts(sourceFile, defaultDetectionOptions);
+  const jsxStyleProps = detectAllJsxStyleProps(sourceFile);
 
   cache.set(document.uri, {
     version: document.version,
     sourceFile,
     contexts,
+    jsxStyleProps,
   });
 
   return sourceFile;
@@ -95,10 +104,18 @@ export function getStyleContexts(document: TextDocument): DetectedStyleObject[] 
  */
 export function getDocumentData(
   document: TextDocument,
-): { sourceFile: ts.SourceFile; contexts: DetectedStyleObject[] } {
+): {
+  sourceFile: ts.SourceFile;
+  contexts: DetectedStyleObject[];
+  jsxStyleProps: DetectedJsxStyleProp[];
+} {
   const cached = cache.get(document.uri);
   if (cached && cached.version === document.version) {
-    return { sourceFile: cached.sourceFile, contexts: cached.contexts };
+    return {
+      sourceFile: cached.sourceFile,
+      contexts: cached.contexts,
+      jsxStyleProps: cached.jsxStyleProps,
+    };
   }
 
   // Parse and cache
@@ -111,14 +128,16 @@ export function getDocumentData(
   );
 
   const contexts = detectContexts(sourceFile, defaultDetectionOptions);
+  const jsxStyleProps = detectAllJsxStyleProps(sourceFile);
 
   cache.set(document.uri, {
     version: document.version,
     sourceFile,
     contexts,
+    jsxStyleProps,
   });
 
-  return { sourceFile, contexts };
+  return { sourceFile, contexts, jsxStyleProps };
 }
 
 /**

@@ -8,6 +8,12 @@
 import * as ts from 'typescript';
 import { TastyContext, TastyContextType } from '../../shared/src/types';
 import { isStateKey, isSubElement } from './stateParser';
+import { ALL_STYLE_PROPERTIES } from './builtins';
+
+/**
+ * Set of valid style property names for quick lookup.
+ */
+const STYLE_PROPERTY_SET = new Set(ALL_STYLE_PROPERTIES);
 
 /**
  * Detected style object with its location and context.
@@ -18,6 +24,32 @@ export interface DetectedStyleObject {
   node: ts.ObjectLiteralExpression;
   /** Parent context (for nested objects) */
   parent?: DetectedStyleObject;
+}
+
+/**
+ * Detected JSX style prop with its location.
+ */
+export interface DetectedJsxStyleProp {
+  /** The component name (e.g., "Button", "Flow") */
+  componentName: string;
+  /** The property name (e.g., "gap", "fill", "padding") */
+  propName: string;
+  /** Start offset of the property name in the document */
+  propNameStart: number;
+  /** End offset of the property name in the document */
+  propNameEnd: number;
+  /** The value (string for string literals, object for expressions) */
+  value: string | undefined;
+  /** Start offset of the value in the document */
+  valueStart: number;
+  /** End offset of the value in the document */
+  valueEnd: number;
+  /** Whether the value is a string literal */
+  isStringValue: boolean;
+  /** Whether the value is an object expression (style object) */
+  isObjectValue: boolean;
+  /** The AST node for the attribute */
+  node: ts.JsxAttribute;
 }
 
 /**
@@ -73,6 +105,27 @@ export function detectContexts(
       if (heuristicContext) {
         results.push(heuristicContext);
       }
+    }
+
+    ts.forEachChild(node, visit);
+  };
+
+  visit(sourceFile);
+  return results;
+}
+
+/**
+ * Detect all JSX style props in a source file.
+ * Returns all JSX attributes that are valid tasty style properties.
+ */
+export function detectAllJsxStyleProps(sourceFile: ts.SourceFile): DetectedJsxStyleProp[] {
+  const results: DetectedJsxStyleProp[] = [];
+
+  const visit = (node: ts.Node) => {
+    // Check for JSX opening elements and self-closing elements
+    if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
+      const jsxStyleProps = detectJsxStyleProps(node, sourceFile);
+      results.push(...jsxStyleProps);
     }
 
     ts.forEachChild(node, visit);
@@ -395,6 +448,94 @@ function detectStylesVariable(
   }
 
   return undefined;
+}
+
+/**
+ * Check if a property name is a valid tasty style property.
+ */
+export function isStyleProperty(name: string): boolean {
+  return STYLE_PROPERTY_SET.has(name);
+}
+
+/**
+ * Detect JSX style props (e.g., gap="2x", fill="#primary", padding="1x 2x").
+ * Only detects attributes that are valid tasty style properties.
+ */
+function detectJsxStyleProps(
+  node: ts.JsxOpeningElement | ts.JsxSelfClosingElement,
+  sourceFile: ts.SourceFile,
+): DetectedJsxStyleProp[] {
+  const results: DetectedJsxStyleProp[] = [];
+
+  // Get component name
+  const tagName = node.tagName;
+  let componentName: string;
+  if (ts.isIdentifier(tagName)) {
+    componentName = tagName.text;
+  } else if (ts.isPropertyAccessExpression(tagName)) {
+    // e.g., Flex.Item
+    componentName = tagName.getText(sourceFile);
+  } else {
+    return results;
+  }
+
+  // Process attributes
+  for (const attr of node.attributes.properties) {
+    if (!ts.isJsxAttribute(attr)) continue;
+
+    const propName = attr.name.getText(sourceFile);
+
+    // Only process known tasty style properties
+    if (!isStyleProperty(propName)) continue;
+
+    const initializer = attr.initializer;
+    let value: string | undefined;
+    let valueStart: number;
+    let valueEnd: number;
+    let isStringValue = false;
+    let isObjectValue = false;
+
+    if (!initializer) {
+      // Boolean prop like `hide`
+      valueStart = attr.name.getEnd();
+      valueEnd = attr.name.getEnd();
+    } else if (ts.isStringLiteral(initializer)) {
+      // gap="2x"
+      value = initializer.text;
+      valueStart = initializer.getStart(sourceFile);
+      valueEnd = initializer.getEnd();
+      isStringValue = true;
+    } else if (ts.isJsxExpression(initializer) && initializer.expression) {
+      // gap={variable} or gap={{ ... }}
+      valueStart = initializer.getStart(sourceFile);
+      valueEnd = initializer.getEnd();
+
+      if (ts.isStringLiteral(initializer.expression)) {
+        value = initializer.expression.text;
+        isStringValue = true;
+      } else if (ts.isObjectLiteralExpression(initializer.expression)) {
+        isObjectValue = true;
+      }
+    } else {
+      valueStart = attr.getEnd();
+      valueEnd = attr.getEnd();
+    }
+
+    results.push({
+      componentName,
+      propName,
+      propNameStart: attr.name.getStart(sourceFile),
+      propNameEnd: attr.name.getEnd(),
+      value,
+      valueStart,
+      valueEnd,
+      isStringValue,
+      isObjectValue,
+      node: attr,
+    });
+  }
+
+  return results;
 }
 
 /**

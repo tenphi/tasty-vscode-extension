@@ -3,7 +3,7 @@
  */
 
 import * as ts from 'typescript';
-import { detectContexts } from '../server/src/contextDetector';
+import { detectContexts, detectAllJsxStyleProps, isStyleProperty } from '../server/src/contextDetector';
 import { TastyContextType } from '../shared/src/types';
 
 function createSourceFile(code: string, filename = 'test.tsx'): ts.SourceFile {
@@ -239,6 +239,119 @@ export const VALIDATION_STYLES: Styles = {
       
       expect(contexts.length).toBe(1);
       expect(contexts[0].context.type).toBe(TastyContextType.StaticStyles);
+    });
+  });
+
+  describe('JSX Style Props Detection', () => {
+    it('should detect JSX style props on components', () => {
+      const code = `
+        const Component = () => (
+          <Flex gap="2x" fill="#primary" padding="1x">
+            Hello
+          </Flex>
+        );
+      `;
+      const sourceFile = createSourceFile(code);
+      const jsxStyleProps = detectAllJsxStyleProps(sourceFile);
+      
+      expect(jsxStyleProps.length).toBe(3);
+      expect(jsxStyleProps.map(p => p.propName)).toEqual(['gap', 'fill', 'padding']);
+    });
+
+    it('should detect style props on self-closing JSX elements', () => {
+      const code = `
+        const Component = () => <Button fill="#success" radius="1r" />;
+      `;
+      const sourceFile = createSourceFile(code);
+      const jsxStyleProps = detectAllJsxStyleProps(sourceFile);
+      
+      expect(jsxStyleProps.length).toBe(2);
+      expect(jsxStyleProps[0].propName).toBe('fill');
+      expect(jsxStyleProps[0].value).toBe('#success');
+      expect(jsxStyleProps[1].propName).toBe('radius');
+      expect(jsxStyleProps[1].value).toBe('1r');
+    });
+
+    it('should not detect non-style props', () => {
+      const code = `
+        const Component = () => (
+          <Button onClick={handleClick} disabled aria-label="Submit" gap="2x">
+            Submit
+          </Button>
+        );
+      `;
+      const sourceFile = createSourceFile(code);
+      const jsxStyleProps = detectAllJsxStyleProps(sourceFile);
+      
+      // Only gap should be detected, not onClick, disabled, or aria-label
+      expect(jsxStyleProps.length).toBe(1);
+      expect(jsxStyleProps[0].propName).toBe('gap');
+    });
+
+    it('should capture component name correctly', () => {
+      const code = `
+        const Component = () => (
+          <Card.Header gap="1x" />
+        );
+      `;
+      const sourceFile = createSourceFile(code);
+      const jsxStyleProps = detectAllJsxStyleProps(sourceFile);
+      
+      expect(jsxStyleProps.length).toBe(1);
+      expect(jsxStyleProps[0].componentName).toBe('Card.Header');
+      expect(jsxStyleProps[0].propName).toBe('gap');
+    });
+
+    it('should handle expression values', () => {
+      const code = `
+        const Component = () => (
+          <Flex gap={someVar} fill={{ '': '#red', hovered: '#blue' }}>
+            Content
+          </Flex>
+        );
+      `;
+      const sourceFile = createSourceFile(code);
+      const jsxStyleProps = detectAllJsxStyleProps(sourceFile);
+      
+      expect(jsxStyleProps.length).toBe(2);
+      expect(jsxStyleProps[0].propName).toBe('gap');
+      expect(jsxStyleProps[0].isStringValue).toBe(false);
+      expect(jsxStyleProps[1].propName).toBe('fill');
+      expect(jsxStyleProps[1].isObjectValue).toBe(true);
+    });
+
+    it('should detect multiple JSX elements in the same file', () => {
+      const code = `
+        const Component = () => (
+          <Flex gap="2x">
+            <Card padding="3x" fill="#white">
+              <Text color="#dark">Hello</Text>
+            </Card>
+          </Flex>
+        );
+      `;
+      const sourceFile = createSourceFile(code);
+      const jsxStyleProps = detectAllJsxStyleProps(sourceFile);
+      
+      expect(jsxStyleProps.length).toBe(4);
+      expect(jsxStyleProps.map(p => p.propName)).toEqual(['gap', 'padding', 'fill', 'color']);
+    });
+  });
+
+  describe('isStyleProperty', () => {
+    it('should return true for valid style properties', () => {
+      expect(isStyleProperty('gap')).toBe(true);
+      expect(isStyleProperty('fill')).toBe(true);
+      expect(isStyleProperty('padding')).toBe(true);
+      expect(isStyleProperty('display')).toBe(true);
+      expect(isStyleProperty('color')).toBe(true);
+    });
+
+    it('should return false for non-style properties', () => {
+      expect(isStyleProperty('onClick')).toBe(false);
+      expect(isStyleProperty('disabled')).toBe(false);
+      expect(isStyleProperty('aria-label')).toBe(false);
+      expect(isStyleProperty('className')).toBe(false);
     });
   });
 });

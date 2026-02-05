@@ -43,6 +43,10 @@ import {
   getContextAtPosition,
   toCompletionContext,
   toHoverContext,
+  findContainingJsxStyleProp,
+  getJsxStylePropContext,
+  jsxPropToCompletionContext,
+  jsxPropToHoverContext,
 } from './contextResolver';
 import { collectLocalDefinitions } from './localDefinitions';
 
@@ -285,8 +289,8 @@ async function validateAndPublishDiagnostics(document: TextDocument): Promise<vo
 
   try {
     const config = await getDocumentConfig(document);
-    const { sourceFile, contexts } = getDocumentData(document);
-    const diagnostics = validateDocument(document, sourceFile, contexts, config);
+    const { sourceFile, contexts, jsxStyleProps } = getDocumentData(document);
+    const diagnostics = validateDocument(document, sourceFile, contexts, config, jsxStyleProps);
     connection.sendDiagnostics({ uri: document.uri, diagnostics });
   } catch (error) {
     connection.console.error(`Validation error: ${error}`);
@@ -337,8 +341,8 @@ connection.languages.semanticTokens.on(async (params: SemanticTokensParams) => {
 
   try {
     const config = await getDocumentConfig(document);
-    const { sourceFile, contexts } = getDocumentData(document);
-    const builder = provideSemanticTokens(document, sourceFile, contexts, config);
+    const { sourceFile, contexts, jsxStyleProps } = getDocumentData(document);
+    const builder = provideSemanticTokens(document, sourceFile, contexts, config, jsxStyleProps);
     return builder.build();
   } catch (error) {
     connection.console.error(`Semantic tokens error: ${error}`);
@@ -366,12 +370,22 @@ connection.onCompletion(async (params: CompletionParams) => {
 
   try {
     const config = await getDocumentConfig(document);
-    const { sourceFile, contexts } = getDocumentData(document);
+    const { sourceFile, contexts, jsxStyleProps } = getDocumentData(document);
 
     // Collect local definitions from this file
     const localDefs = collectLocalDefinitions(contexts, sourceFile);
 
-    // Use AST-based context detection
+    const offset = document.offsetAt(params.position);
+
+    // First check if we're inside a JSX style prop
+    const jsxProp = findContainingJsxStyleProp(offset, jsxStyleProps);
+    if (jsxProp) {
+      const jsxCtx = getJsxStylePropContext(document, params.position, jsxProp);
+      const context = jsxPropToCompletionContext(jsxCtx, params.position);
+      return getCompletions(context, config, localDefs);
+    }
+
+    // Fall back to style object context detection
     const positionContext = getContextAtPosition(
       document,
       params.position,
@@ -408,12 +422,27 @@ connection.onHover(async (params: HoverParams) => {
 
   try {
     const config = await getDocumentConfig(document);
-    const { sourceFile, contexts } = getDocumentData(document);
+    const { sourceFile, contexts, jsxStyleProps } = getDocumentData(document);
 
     // Collect local definitions from this file
     const localDefs = collectLocalDefinitions(contexts, sourceFile);
 
-    // Use AST-based context detection
+    const offset = document.offsetAt(params.position);
+
+    // First check if we're inside a JSX style prop
+    const jsxProp = findContainingJsxStyleProp(offset, jsxStyleProps);
+    if (jsxProp) {
+      const jsxCtx = getJsxStylePropContext(document, params.position, jsxProp);
+      const context = jsxPropToHoverContext(document, params.position, jsxCtx);
+      
+      if (!context) {
+        return null;
+      }
+      
+      return getHoverInfo(context, config, localDefs);
+    }
+
+    // Fall back to style object context detection
     const positionContext = getContextAtPosition(
       document,
       params.position,
@@ -591,8 +620,8 @@ connection.languages.diagnostics.on(async (params: DocumentDiagnosticParams): Pr
 
   try {
     const config = await getDocumentConfig(document);
-    const { sourceFile, contexts } = getDocumentData(document);
-    const diagnostics = validateDocument(document, sourceFile, contexts, config);
+    const { sourceFile, contexts, jsxStyleProps } = getDocumentData(document);
+    const diagnostics = validateDocument(document, sourceFile, contexts, config, jsxStyleProps);
 
     return {
       kind: DocumentDiagnosticReportKind.Full,

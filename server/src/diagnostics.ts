@@ -8,12 +8,12 @@ import * as ts from 'typescript';
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { MergedConfig } from '../../shared/src/configTypes';
-import { DetectedStyleObject, getStyleProperties } from './contextDetector';
+import { DetectedStyleObject, DetectedJsxStyleProp, getStyleProperties } from './contextDetector';
 import { parseValue } from './tastyParser';
 import { parseStateKey } from './stateParser';
 import { TastyTokenType } from '../../shared/src/types';
 import { BUILT_IN_UNITS, ALL_STYLE_PROPERTIES, CSS_GLOBAL_VALUES, RESERVED_COLOR_TOKENS, CSS_FUNCTIONS, PRESET_MODIFIERS } from './builtins';
-import { collectLocalDefinitions, LocalDefinitions } from './localDefinitions';
+import { collectLocalDefinitions, LocalDefinitions, createEmptyLocalDefinitions } from './localDefinitions';
 
 /**
  * Calculate Levenshtein distance between two strings.
@@ -110,6 +110,7 @@ export function validateDocument(
   sourceFile: ts.SourceFile,
   contexts: DetectedStyleObject[],
   config: MergedConfig,
+  jsxStyleProps: DetectedJsxStyleProp[] = [],
 ): Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
 
@@ -117,10 +118,46 @@ export function validateDocument(
   // This allows tokens/states defined in one tasty() call to be recognized in others
   const localDefs = collectLocalDefinitions(contexts, sourceFile);
 
-  // Validate each context
+  // Validate each style object context
   for (const { context, node } of contexts) {
     const contextDiagnostics = validateStyleObject(document, node, sourceFile, config, localDefs);
     diagnostics.push(...contextDiagnostics);
+  }
+
+  // Validate JSX style props (gap="2x", fill="#primary", etc.)
+  for (const prop of jsxStyleProps) {
+    const propDiagnostics = validateJsxStyleProp(document, prop, config, localDefs);
+    diagnostics.push(...propDiagnostics);
+  }
+
+  return diagnostics;
+}
+
+/**
+ * Validate a single JSX style prop value.
+ */
+function validateJsxStyleProp(
+  document: TextDocument,
+  prop: DetectedJsxStyleProp,
+  config: MergedConfig,
+  localDefs: LocalDefinitions,
+): Diagnostic[] {
+  const diagnostics: Diagnostic[] = [];
+
+  // Only validate string values for now
+  if (prop.isStringValue && prop.value !== undefined) {
+    // Value is inside quotes, so add 1 for the opening quote
+    const valueOffset = prop.valueStart + 1;
+    
+    const valueDiagnostics = validateStyleValue(
+      document,
+      prop.value,
+      valueOffset,
+      prop.propName,
+      config,
+      localDefs,
+    );
+    diagnostics.push(...valueDiagnostics);
   }
 
   return diagnostics;

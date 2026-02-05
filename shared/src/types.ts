@@ -117,6 +117,8 @@ export enum TastyContextType {
   StylesProp = 'stylesProp',
   /** Variable ending with *styles/*Styles (heuristic) */
   StylesVariable = 'stylesVariable',
+  /** JSX style prop like gap="2x", fill="#primary" */
+  JsxStyleProp = 'jsxStyleProp',
 }
 
 /**

@@ -6,6 +6,12 @@
   "patterns": [
     {
       "include": "#tasty-styles"
+    },
+    {
+      "include": "#safe-string-value-patterns"
+    },
+    {
+      "include": "#style-prop-name-pattern"
     }
   ],
   "repository": {
@@ -166,50 +172,6 @@
               "name": "source.tsx"
             }
           ]
-        },
-        {
-          "name": "meta.tasty-jsx-component.tsx",
-          "comment": "JSX component opening tags (capitalized) - use lookahead to not capture the tag name",
-          "begin": "(<)(?=[A-Z][A-Za-z0-9_.]*)",
-          "end": "/?>",
-          "beginCaptures": {
-            "1": {
-              "name": "punctuation.definition.tag.begin.tsx"
-            }
-          },
-          "endCaptures": {
-            "0": {
-              "name": "punctuation.definition.tag.end.tsx"
-            }
-          },
-          "patterns": [
-            {
-              "comment": "Component name - let default grammar handle styling",
-              "match": "\\G([A-Z][A-Za-z0-9_.]*)(?:\\s*\\.\\s*([A-Z][A-Za-z0-9_]*))*",
-              "captures": {
-                "0": {
-                  "name": "entity.name.type.tsx"
-                }
-              }
-            },
-            { "include": "#jsx-component-style-props" }
-          ]
-        },
-        {
-          "name": "meta.tasty-jsx-component-close.tsx",
-          "comment": "JSX component closing tags (capitalized) - ensure consistent styling with opening tags",
-          "match": "(</)([A-Z][A-Za-z0-9_.]*)(>)",
-          "captures": {
-            "1": {
-              "name": "punctuation.definition.tag.begin.tsx"
-            },
-            "2": {
-              "name": "entity.name.type.tsx"
-            },
-            "3": {
-              "name": "punctuation.definition.tag.end.tsx"
-            }
-          }
         }
       ]
     },
@@ -2094,6 +2056,199 @@
           "comment": "Comma separator",
           "name": "punctuation.separator.list.css",
           "match": ","
+        }
+      ]
+    },
+"style-prop-name-pattern": {
+      "comment": "Style prop names - uses match pattern with lookahead for =",
+      "patterns": [
+        {
+          "comment": "Style prop name followed by = (for JSX props)",
+          "match": "(?<=\\s|^)(display|font|preset|hide|whiteSpace|opacity|transition|gridArea|order|gridColumn|gridRow|placeSelf|alignSelf|justifySelf|zIndex|margin|inset|position|reset|padding|paddingInline|paddingBlock|overflow|scrollbar|textAlign|border|radius|shadow|outline|color|fill|fade|image|textTransform|fontWeight|fontStyle|width|height|flexBasis|flexGrow|flexShrink|flex|flow|placeItems|placeContent|alignItems|alignContent|justifyItems|justifyContent|align|justify|gap|columnGap|rowGap|gridColumns|gridRows|gridTemplate|gridAreas|styles|mods|qa)(?=\\s*=)",
+          "name": "support.type.property-name.tasty"
+        }
+      ]
+    },
+    "safe-string-value-patterns": {
+      "comment": "Only patterns that won't match plain English text - safe for global injection",
+      "patterns": [
+        {
+          "comment": "Color token with # prefix like #primary, #dark-02 - only inside quoted strings",
+          "begin": "(['\"])(?=#[a-zA-Z])",
+          "end": "\\1",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.string.begin.tsx" }
+          },
+          "endCaptures": {
+            "0": { "name": "punctuation.definition.string.end.tsx" }
+          },
+          "contentName": "string.quoted.tasty",
+          "patterns": [
+            {
+              "name": "constant.other.color.tasty",
+              "match": "#[a-zA-Z][a-zA-Z0-9_.-]*"
+            }
+          ]
+        },
+        {
+          "comment": "String starting with dimension value like 2x, 1r - only inside quoted strings",
+          "begin": "(['\"])(?=\\d)",
+          "end": "\\1",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.string.begin.tsx" }
+          },
+          "endCaptures": {
+            "0": { "name": "punctuation.definition.string.end.tsx" }
+          },
+          "contentName": "string.quoted.tasty",
+          "patterns": [
+            {
+              "name": "constant.numeric.tasty",
+              "match": "\\b\\d+(\\.\\d+)?(x|r|bw|px|%|em|rem|vh|vw|lh|ch|fr|deg|s|ms)\\b"
+            },
+            {
+              "name": "constant.other.color.tasty",
+              "match": "#[a-zA-Z][a-zA-Z0-9_.-]*"
+            }
+          ]
+        }
+      ]
+    },
+    "string-value-patterns": {
+      "comment": "Legacy - patterns for highlighting tasty values",
+      "patterns": [
+        {
+          "comment": "Color token with # prefix like #primary, #dark-02",
+          "name": "constant.other.color.tasty",
+          "match": "#[a-zA-Z][a-zA-Z0-9_.-]*"
+        },
+        {
+          "comment": "Dimension value like 2x, 1r, 1bw, 10px, 50%",
+          "name": "constant.numeric.tasty",
+          "match": "\\b\\d+(\\.\\d+)?(x|r|bw|px|%|em|rem|vh|vw|lh|ch|ex|cap|ic|rlh|vi|vb|vmin|vmax|svh|svw|dvh|dvw|lvh|lvw|deg|rad|grad|turn|s|ms|fr)\\b"
+        }
+      ]
+    },
+    "jsx-style-props-injection": {
+      "comment": "Legacy - Direct injection of style prop patterns into JSX tag attributes",
+      "patterns": [
+        {
+          "comment": "Style prop with double-quoted string value: gap=\"2x\"",
+          "name": "meta.jsx-style-prop.string.tasty",
+          "match": "\\b(display|font|preset|hide|whiteSpace|opacity|transition|gridArea|order|gridColumn|gridRow|placeSelf|alignSelf|justifySelf|zIndex|margin|inset|position|reset|padding|paddingInline|paddingBlock|overflow|scrollbar|textAlign|border|radius|shadow|outline|color|fill|fade|image|textTransform|fontWeight|fontStyle|width|height|flexBasis|flexGrow|flexShrink|flex|flow|placeItems|placeContent|alignItems|alignContent|justifyItems|justifyContent|align|justify|gap|columnGap|rowGap|gridColumns|gridRows|gridTemplate|gridAreas)\\s*(=)\\s*(\")([^\"]*)(\")",
+          "captures": {
+            "1": {
+              "name": "support.type.property-name.tasty"
+            },
+            "2": {
+              "name": "keyword.operator.assignment.tsx"
+            },
+            "3": {
+              "name": "punctuation.definition.string.begin.tsx"
+            },
+            "4": {
+              "name": "string.quoted.tasty meta.embedded.block.tasty"
+            },
+            "5": {
+              "name": "punctuation.definition.string.end.tsx"
+            }
+          }
+        },
+        {
+          "comment": "Style prop with single-quoted string value: gap='2x'",
+          "name": "meta.jsx-style-prop.string.tasty",
+          "match": "\\b(display|font|preset|hide|whiteSpace|opacity|transition|gridArea|order|gridColumn|gridRow|placeSelf|alignSelf|justifySelf|zIndex|margin|inset|position|reset|padding|paddingInline|paddingBlock|overflow|scrollbar|textAlign|border|radius|shadow|outline|color|fill|fade|image|textTransform|fontWeight|fontStyle|width|height|flexBasis|flexGrow|flexShrink|flex|flow|placeItems|placeContent|alignItems|alignContent|justifyItems|justifyContent|align|justify|gap|columnGap|rowGap|gridColumns|gridRows|gridTemplate|gridAreas)\\s*(=)\\s*(')([^']*)(')",
+          "captures": {
+            "1": {
+              "name": "support.type.property-name.tasty"
+            },
+            "2": {
+              "name": "keyword.operator.assignment.tsx"
+            },
+            "3": {
+              "name": "punctuation.definition.string.begin.tsx"
+            },
+            "4": {
+              "name": "string.quoted.tasty meta.embedded.block.tasty"
+            },
+            "5": {
+              "name": "punctuation.definition.string.end.tsx"
+            }
+          }
+        },
+        {
+          "comment": "styles/Styles prop with inline object: styles={{...}}",
+          "name": "meta.jsx-style-prop.styles-object.tasty",
+          "begin": "\\b(styles|\\w*[Ss]tyles)\\s*(=)\\s*(\\{)\\s*(\\{)",
+          "end": "\\}\\s*\\}",
+          "beginCaptures": {
+            "1": {
+              "name": "support.type.property-name.tasty"
+            },
+            "2": {
+              "name": "keyword.operator.assignment.tsx"
+            },
+            "3": {
+              "name": "punctuation.section.embedded.begin.tsx"
+            },
+            "4": {
+              "name": "punctuation.definition.block.tsx"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.block.tsx"
+            }
+          },
+          "contentName": "meta.embedded.block.tasty",
+          "patterns": [
+            { "include": "#comments" },
+            { "include": "#tasty-object-property" },
+            { "include": "#tasty-nested-object" },
+            {
+              "match": ",",
+              "name": "punctuation.separator.comma.tsx"
+            },
+            {
+              "match": "\\s+",
+              "name": "source.tsx"
+            }
+          ]
+        },
+        {
+          "comment": "Style prop with object value: gap={{ '': '2x', hovered: '3x' }}",
+          "name": "meta.jsx-style-prop.object.tasty",
+          "begin": "\\b(display|font|preset|hide|whiteSpace|opacity|transition|gridArea|order|gridColumn|gridRow|placeSelf|alignSelf|justifySelf|zIndex|margin|inset|position|reset|padding|paddingInline|paddingBlock|overflow|scrollbar|textAlign|border|radius|shadow|outline|color|fill|fade|image|textTransform|fontWeight|fontStyle|width|height|flexBasis|flexGrow|flexShrink|flex|flow|placeItems|placeContent|alignItems|alignContent|justifyItems|justifyContent|align|justify|gap|columnGap|rowGap|gridColumns|gridRows|gridTemplate|gridAreas)\\s*(=)\\s*(\\{)\\s*(\\{)",
+          "end": "\\}\\s*\\}",
+          "beginCaptures": {
+            "1": {
+              "name": "support.type.property-name.tasty"
+            },
+            "2": {
+              "name": "keyword.operator.assignment.tsx"
+            },
+            "3": {
+              "name": "punctuation.section.embedded.begin.tsx"
+            },
+            "4": {
+              "name": "punctuation.definition.block.tsx"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.block.tsx"
+            }
+          },
+          "contentName": "meta.embedded.block.tasty",
+          "patterns": [
+            { "include": "#comments" },
+            { "include": "#tasty-object-property" },
+            { "include": "#tasty-nested-object" },
+            {
+              "match": ",",
+              "name": "punctuation.separator.comma.tsx"
+            }
+          ]
         }
       ]
     }

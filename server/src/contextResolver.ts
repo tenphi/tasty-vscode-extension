@@ -8,7 +8,7 @@
 import * as ts from 'typescript';
 import { Position } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { DetectedStyleObject, getStyleProperties } from './contextDetector';
+import { DetectedStyleObject, DetectedJsxStyleProp, getStyleProperties } from './contextDetector';
 
 /**
  * Types of position contexts within tasty styles.
@@ -58,6 +58,23 @@ export function findContainingContext(
   for (const ctx of contexts) {
     if (offset >= ctx.context.start && offset <= ctx.context.end) {
       return ctx;
+    }
+  }
+  return null;
+}
+
+/**
+ * Find the JSX style prop that contains the given offset.
+ * Returns null if cursor is not inside a JSX style prop value.
+ */
+export function findContainingJsxStyleProp(
+  offset: number,
+  jsxStyleProps: DetectedJsxStyleProp[],
+): DetectedJsxStyleProp | null {
+  for (const prop of jsxStyleProps) {
+    // Check if offset is within the value (between quotes or braces)
+    if (offset >= prop.valueStart && offset <= prop.valueEnd) {
+      return prop;
     }
   }
   return null;
@@ -400,5 +417,153 @@ export function toHoverContext(
     isPropertyName: ctx.type === 'propertyName',
     isPropertyValue: ctx.type === 'propertyValue' || ctx.type === 'tokenDefinition',
     propertyName: ctx.propertyName,
+  };
+}
+
+/**
+ * JSX style prop context for completion and hover.
+ */
+export interface JsxStylePropContext {
+  /** The property name (e.g., 'gap', 'fill') */
+  propertyName: string;
+  /** Text before the cursor within the value */
+  textBefore: string;
+  /** The cursor offset within the value string */
+  valueOffset: number;
+  /** Whether we're inside a string literal value */
+  isStringValue: boolean;
+  /** The current token being typed (for # and $ tokens) */
+  currentToken?: string;
+  /** Start offset of the current token within textBefore */
+  tokenStartOffset?: number;
+  /** End offset of the current token within textBefore */
+  tokenEndOffset?: number;
+}
+
+/**
+ * Get the context for a position within a JSX style prop.
+ */
+export function getJsxStylePropContext(
+  document: TextDocument,
+  position: Position,
+  prop: DetectedJsxStyleProp,
+): JsxStylePropContext | null {
+  const offset = document.offsetAt(position);
+  
+  // Only handle string values for now
+  if (!prop.isStringValue) {
+    return null;
+  }
+  
+  // Value offset is 1 more than valueStart to skip opening quote
+  const valueContentStart = prop.valueStart + 1;
+  const valueContentEnd = prop.valueEnd - 1;
+  
+  // Check if cursor is within the value content (between quotes)
+  if (offset < valueContentStart || offset > valueContentEnd) {
+    return null;
+  }
+  
+  // Get text before cursor within the value
+  const valueOffset = offset - valueContentStart;
+  const textBefore = prop.value?.slice(0, valueOffset) ?? '';
+  
+  // Extract current token
+  let currentToken: string | undefined;
+  let tokenStartOffset: number | undefined;
+  let tokenEndOffset: number | undefined;
+  
+  const extracted = extractCurrentToken(textBefore);
+  if (extracted) {
+    currentToken = extracted.token;
+    tokenStartOffset = extracted.startOffset;
+    tokenEndOffset = textBefore.length;
+  }
+  
+  return {
+    propertyName: prop.propName,
+    textBefore,
+    valueOffset,
+    isStringValue: true,
+    currentToken,
+    tokenStartOffset,
+    tokenEndOffset,
+  };
+}
+
+/**
+ * Convert JSX style prop context to completion context.
+ */
+export function jsxPropToCompletionContext(
+  jsxCtx: JsxStylePropContext | null,
+  position?: Position,
+): CompletionPositionContext {
+  if (!jsxCtx) {
+    return {
+      isPropertyName: false,
+      isPropertyValue: false,
+      isStateKey: false,
+      textBefore: '',
+    };
+  }
+  
+  return {
+    isPropertyName: false,
+    isPropertyValue: true,
+    isStateKey: false,
+    propertyName: jsxCtx.propertyName,
+    textBefore: jsxCtx.textBefore,
+    currentToken: jsxCtx.currentToken,
+    tokenStartOffset: jsxCtx.tokenStartOffset,
+    tokenEndOffset: jsxCtx.tokenEndOffset,
+    position,
+  };
+}
+
+/**
+ * Convert JSX style prop context to hover context.
+ */
+export function jsxPropToHoverContext(
+  document: TextDocument,
+  position: Position,
+  jsxCtx: JsxStylePropContext | null,
+): HoverPositionContext | null {
+  if (!jsxCtx) {
+    return null;
+  }
+  
+  const text = document.getText();
+  const offset = document.offsetAt(position);
+  
+  // Get the current line
+  const lineStart = text.lastIndexOf('\n', offset - 1) + 1;
+  const lineEnd = text.indexOf('\n', offset);
+  const lineText = text.slice(lineStart, lineEnd === -1 ? undefined : lineEnd);
+  
+  // Get word at cursor
+  const charPos = offset - lineStart;
+  let wordStart = charPos;
+  let wordEnd = charPos;
+  
+  // Expand to word boundaries (including # and $)
+  while (wordStart > 0 && /[a-zA-Z0-9_#$.-]/.test(lineText[wordStart - 1])) {
+    wordStart--;
+  }
+  while (wordEnd < lineText.length && /[a-zA-Z0-9_.-]/.test(lineText[wordEnd])) {
+    wordEnd++;
+  }
+  
+  const word = lineText.slice(wordStart, wordEnd);
+  
+  if (!word) {
+    return null;
+  }
+  
+  return {
+    word,
+    line: lineText,
+    isPropertyName: false,
+    isPropertyValue: true,
+    propertyName: jsxCtx.propertyName,
   };
 }
