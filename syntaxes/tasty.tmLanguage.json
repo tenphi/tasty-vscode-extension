@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
   "name": "Tasty",
   "scopeName": "source.tasty",
-  "injectionSelector": "L:source.tsx -comment -string, L:source.ts -comment -string, L:meta.embedded.expression.tsx -comment -string",
+  "injectionSelector": "L:source.tsx -comment, L:source.ts -comment, L:source.js -comment, L:source.jsx -comment",
   "patterns": [
     {
       "include": "#tasty-styles"
@@ -11,9 +11,6 @@
   "repository": {
     "tasty-styles": {
       "patterns": [
-        {
-          "include": "#jsx-style-props"
-        },
         {
           "name": "meta.tasty-styles.inline.tsx",
           "begin": "\\{\\{",
@@ -169,115 +166,50 @@
               "name": "source.tsx"
             }
           ]
-        }
-      ]
-    },
-    "jsx-style-props": {
-      "comment": "Style props inside JSX tags without wrapping the full tag",
-      "patterns": [
+        },
         {
-          "comment": "Style prop with string value: gap=\"2x\"",
-          "name": "meta.jsx-style-prop.string.tasty",
-          "begin": "\\b(display|font|preset|hide|whiteSpace|opacity|transition|gridArea|order|gridColumn|gridRow|placeSelf|alignSelf|justifySelf|zIndex|margin|inset|position|reset|padding|paddingInline|paddingBlock|overflow|scrollbar|textAlign|border|radius|shadow|outline|color|fill|fade|image|textTransform|fontWeight|fontStyle|width|height|flexBasis|flexGrow|flexShrink|flex|flow|placeItems|placeContent|alignItems|alignContent|justifyItems|justifyContent|align|justify|gap|columnGap|rowGap|gridColumns|gridRows|gridTemplate|gridAreas)\\s*(=)\\s*(['\"])",
-          "end": "\\3",
+          "name": "meta.tasty-jsx-component.tsx",
+          "comment": "JSX component opening tags (capitalized) - use lookahead to not capture the tag name",
+          "begin": "(<)(?=[A-Z][A-Za-z0-9_.]*)",
+          "end": "/?>",
           "beginCaptures": {
             "1": {
-              "name": "support.type.property-name.tasty"
-            },
-            "2": {
-              "name": "keyword.operator.assignment.tsx"
-            },
-            "3": {
-              "name": "punctuation.definition.string.begin.tsx"
+              "name": "punctuation.definition.tag.begin.tsx"
             }
           },
           "endCaptures": {
             "0": {
-              "name": "punctuation.definition.string.end.tsx"
+              "name": "punctuation.definition.tag.end.tsx"
             }
           },
-          "contentName": "meta.embedded.block.tasty",
           "patterns": [
-            { "include": "#tasty-syntax" }
+            {
+              "comment": "Component name - let default grammar handle styling",
+              "match": "\\G([A-Z][A-Za-z0-9_.]*)(?:\\s*\\.\\s*([A-Z][A-Za-z0-9_]*))*",
+              "captures": {
+                "0": {
+                  "name": "entity.name.type.tsx"
+                }
+              }
+            },
+            { "include": "#jsx-component-style-props" }
           ]
         },
         {
-          "comment": "Style prop with object value: gap={{ '': '2x', hovered: '3x' }}",
-          "name": "meta.jsx-style-prop.object.tasty",
-          "begin": "\\b(display|font|preset|hide|whiteSpace|opacity|transition|gridArea|order|gridColumn|gridRow|placeSelf|alignSelf|justifySelf|zIndex|margin|inset|position|reset|padding|paddingInline|paddingBlock|overflow|scrollbar|textAlign|border|radius|shadow|outline|color|fill|fade|image|textTransform|fontWeight|fontStyle|width|height|flexBasis|flexGrow|flexShrink|flex|flow|placeItems|placeContent|alignItems|alignContent|justifyItems|justifyContent|align|justify|gap|columnGap|rowGap|gridColumns|gridRows|gridTemplate|gridAreas)\\s*(=)\\s*(\\{)\\s*(\\{)",
-          "end": "\\}\\s*\\}",
-          "beginCaptures": {
+          "name": "meta.tasty-jsx-component-close.tsx",
+          "comment": "JSX component closing tags (capitalized) - ensure consistent styling with opening tags",
+          "match": "(</)([A-Z][A-Za-z0-9_.]*)(>)",
+          "captures": {
             "1": {
-              "name": "support.type.property-name.tasty"
+              "name": "punctuation.definition.tag.begin.tsx"
             },
             "2": {
-              "name": "keyword.operator.assignment.tsx"
+              "name": "entity.name.type.tsx"
             },
             "3": {
-              "name": "punctuation.section.embedded.begin.tsx"
-            },
-            "4": {
-              "name": "punctuation.definition.block.tsx"
+              "name": "punctuation.definition.tag.end.tsx"
             }
-          },
-          "endCaptures": {
-            "0": {
-              "name": "punctuation.definition.block.tsx"
-            }
-          },
-          "contentName": "meta.embedded.block.tasty",
-          "patterns": [
-            { "include": "#comments" },
-            { "include": "#tasty-object-property" },
-            { "include": "#tasty-nested-object" },
-            {
-              "match": ",",
-              "name": "punctuation.separator.comma.tsx"
-            },
-            {
-              "match": "\\s+",
-              "name": "source.tsx"
-            }
-          ]
-        },
-        {
-          "comment": "styles/Styles prop with inline object: styles={{...}}, overlayStyles={{...}}",
-          "name": "meta.jsx-style-prop.styles-object.tasty",
-          "begin": "\\b(styles|\\w*[Ss]tyles)\\s*(=)\\s*(\\{)\\s*(\\{)",
-          "end": "\\}\\s*\\}",
-          "beginCaptures": {
-            "1": {
-              "name": "support.type.property-name.tasty"
-            },
-            "2": {
-              "name": "keyword.operator.assignment.tsx"
-            },
-            "3": {
-              "name": "punctuation.section.embedded.begin.tsx"
-            },
-            "4": {
-              "name": "punctuation.definition.block.tsx"
-            }
-          },
-          "endCaptures": {
-            "0": {
-              "name": "punctuation.definition.block.tsx"
-            }
-          },
-          "contentName": "meta.embedded.block.tasty",
-          "patterns": [
-            { "include": "#comments" },
-            { "include": "#tasty-object-property" },
-            { "include": "#tasty-nested-object" },
-            {
-              "match": ",",
-              "name": "punctuation.separator.comma.tsx"
-            },
-            {
-              "match": "\\s+",
-              "name": "source.tsx"
-            }
-          ]
+          }
         }
       ]
     },

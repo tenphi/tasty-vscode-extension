@@ -2,7 +2,7 @@
   "name": "tasty-syntax-highlighting",
   "displayName": "Tasty Syntax Highlighting",
   "description": "Syntax highlighting, validation, and autocomplete for Tasty CSS-in-JS styles",
-  "version": "2.0.6",
+  "version": "2.0.9",
   "publisher": "cube-dev",
   "engines": {
     "vscode": "^1.74.0",
@@ -24,7 +24,9 @@
   ],
   "activationEvents": [
     "onLanguage:typescript",
-    "onLanguage:typescriptreact"
+    "onLanguage:typescriptreact",
+    "onLanguage:javascript",
+    "onLanguage:javascriptreact"
   ],
   "main": "./dist/client/extension.js",
   "contributes": {
@@ -34,7 +36,9 @@
         "path": "./syntaxes/tasty.tmLanguage.json",
         "injectTo": [
           "source.ts",
-          "source.tsx"
+          "source.tsx",
+          "source.js",
+          "source.jsx"
         ],
         "embeddedLanguages": {
           "meta.embedded.block.tasty": "css"
