@@ -43,61 +43,41 @@ function isPackageSpecifier(value: string): boolean {
 }
 
 /**
- * Resolve a package directory using Node's module resolution.
+ * Extract the package name (without subpath) from a package specifier.
+ */
+function extractPackageName(packageSpecifier: string): string {
+  if (packageSpecifier.startsWith('@')) {
+    // Scoped package: @scope/package or @scope/package/subpath
+    const parts = packageSpecifier.split('/');
+    return parts.slice(0, 2).join('/');
+  }
+  // Regular package: package or package/subpath
+  return packageSpecifier.split('/')[0];
+}
+
+/**
+ * Resolve a package directory by walking up node_modules.
+ * This avoids require.resolve which is blocked by the package's `exports` field.
  * Returns the package root directory or undefined if not found.
  */
 function resolvePackageDirectory(packageName: string, fromDir: string): string | undefined {
-  try {
-    // Extract the package name (without subpath)
-    let pkgName: string;
-    if (packageName.startsWith('@')) {
-      // Scoped package: @scope/package or @scope/package/subpath
-      const parts = packageName.split('/');
-      pkgName = parts.slice(0, 2).join('/');
-    } else {
-      // Regular package: package or package/subpath
-      pkgName = packageName.split('/')[0];
+  const pkgName = extractPackageName(packageName);
+
+  // Walk up directory tree looking in node_modules
+  let currentDir = fromDir;
+  while (true) {
+    const candidate = path.join(currentDir, 'node_modules', pkgName);
+    const pkgJsonPath = path.join(candidate, 'package.json');
+
+    if (fs.existsSync(pkgJsonPath)) {
+      return candidate;
     }
 
-    // Try to resolve the package's package.json
-    const packageJsonPath = require.resolve(`${pkgName}/package.json`, {
-      paths: [fromDir],
-    });
-
-    return path.dirname(packageJsonPath);
-  } catch {
-    // Try alternative: resolve the package main entry and walk up to find package.json
-    try {
-      let pkgName: string;
-      if (packageName.startsWith('@')) {
-        const parts = packageName.split('/');
-        pkgName = parts.slice(0, 2).join('/');
-      } else {
-        pkgName = packageName.split('/')[0];
-      }
-
-      const mainEntry = require.resolve(pkgName, { paths: [fromDir] });
-      let dir = path.dirname(mainEntry);
-
-      // Walk up to find package.json
-      while (dir !== path.dirname(dir)) {
-        const pkgJsonPath = path.join(dir, 'package.json');
-        if (fs.existsSync(pkgJsonPath)) {
-          try {
-            const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf-8'));
-            if (pkgJson.name === pkgName) {
-              return dir;
-            }
-          } catch {
-            // Continue walking up
-          }
-        }
-        dir = path.dirname(dir);
-      }
-    } catch {
-      // Package not found
-    }
+    const parentDir = path.dirname(currentDir);
+    if (parentDir === currentDir) break; // Reached filesystem root
+    currentDir = parentDir;
   }
+
   return undefined;
 }
 

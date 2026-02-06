@@ -155,9 +155,15 @@ function validateConfig(config: unknown): TastyExtensionConfig | null {
   const result: TastyExtensionConfig = {};
   const obj = config as Record<string, unknown>;
 
-  // Validate extends
+  // Validate extends (accept string or single-element array)
   if (typeof obj.extends === 'string') {
     result.extends = obj.extends;
+  } else if (
+    Array.isArray(obj.extends) &&
+    obj.extends.length === 1 &&
+    typeof obj.extends[0] === 'string'
+  ) {
+    result.extends = obj.extends[0];
   }
 
   // Validate tokens
