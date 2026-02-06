@@ -2085,6 +2085,9 @@
           "contentName": "string.quoted.tasty",
           "patterns": [
             {
+              "include": "#custom-properties"
+            },
+            {
               "name": "constant.other.color.tasty",
               "match": "#[a-zA-Z][a-zA-Z0-9_.-]*"
             }
@@ -2102,6 +2105,9 @@
           },
           "contentName": "string.quoted.tasty",
           "patterns": [
+            {
+              "include": "#custom-properties"
+            },
             {
               "name": "constant.numeric.tasty",
               "match": "\\b\\d+(\\.\\d+)?(x|r|bw|px|%|em|rem|vh|vw|lh|ch|fr|deg|s|ms)\\b"

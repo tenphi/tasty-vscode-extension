@@ -540,6 +540,33 @@ To ensure items stay visible while typing, `filterText` is set to the full token
 
 The same approach applies to `@`-prefixed state aliases in state key completions.
 
+### Autocomplete: Missing Completions Inside State-Binding Values (OPEN)
+
+**Status**: Under investigation
+
+**Problem**: Color token and custom property autocomplete does not appear when the cursor is inside a string value within a style-to-state mapping (nested object). Completions work for simple property values but not for state-binding values.
+
+```typescript
+const STYLES: Styles = {
+  fill: '#|',                                    // ✓ Completions appear
+  margin: {
+    ':last-child & :first-child': '0 #|',        // ✗ Completions do NOT appear
+  },
+};
+```
+
+**Investigation results**:
+
+- **Server-side logic is correct**: End-to-end tests confirm that `getContextAtPosition` correctly identifies the cursor as `type: 'propertyValue'` with `inString: true`, extracts the correct `textBefore` and `currentToken`, and `getCompletions` returns the expected color token items. See `test/completionFlow.test.ts`.
+- **The issue is client-side**: VSCode receives completion items from the server but does not display them. The root cause is suspected to be VSCode's client-side completion filtering or a conflict with the built-in TypeScript language server.
+
+**Debugging steps**:
+
+1. Check **Output > Tasty Language Server** for `[completion] returned N items` log
+2. If N > 0, confirm the `textEdit` range and `filterText` values are correct
+3. Check `editor.quickSuggestions.strings` setting (default: `false` — may prevent auto-trigger inside strings, but trigger characters and Ctrl+Space should still work)
+4. Test with TypeScript language server disabled to rule out conflicts
+
 ### Diagnostics Refresh
 
 When `tasty.config.ts` changes, diagnostics are recomputed but **VSCode may not refresh the editor display** until the file is edited.
