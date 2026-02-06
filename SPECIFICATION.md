@@ -518,11 +518,27 @@ The extension uses **TextMate grammar** for syntax highlighting instead of LSP s
 - When multiple language servers emit semantic tokens for the same file, they conflict
 - There's no reliable way to merge or prioritize semantic tokens from different sources
 
-### Autocomplete Limitations
+### Autocomplete: Token and State Alias Filtering
 
-1. **Tokens with hyphens**: Tokens like `#surface-hover` may not autocomplete correctly due to VSCode's word boundary handling
-2. **`$` prefix**: Not recognized as part of word by VSCode's default word pattern
-3. **Workarounds**: `textEdit`, `filterText`, and `commitCharacters` help but VSCode still applies word-boundary pre-filtering
+Token and state alias autocomplete uses `textEdit` and `filterText` to handle VSCode's word-boundary behavior inside string literals.
+
+**How it works:**
+
+VSCode re-filters completion items client-side as the user types, matching the "word at cursor" against each item's `filterText`. The word at cursor is determined by the language's word pattern. In TypeScript, `$` and `#` are valid word characters, but `-` (hyphen) is **not** — it breaks the word boundary.
+
+To ensure items stay visible while typing, `filterText` is set to the full token name with hyphens removed (prefix kept). The `textEdit` handles inserting the actual hyphenated token.
+
+| User types | Word at cursor | filterText (`$side-padding`) | Matches? |
+|------------|---------------|------------------------------|----------|
+| `$`        | `$`           | `$sidepadding`               | Yes (prefix) |
+| `$s`       | `$s`          | `$sidepadding`               | Yes (prefix) |
+| `$side`    | `$side`       | `$sidepadding`               | Yes (prefix) |
+| `$side-`   | (word breaks) | `$sidepadding`               | Popup may close |
+| `$side-p`  | `p`           | `$sidepadding`               | No — new word |
+
+**Remaining limitation:** After typing a hyphen (e.g., `$side-`), the word boundary resets and the completion popup may close. The `textEdit` still covers from the `$`/`#` to the cursor, so if the user re-triggers completion (e.g., via Ctrl+Space), the correct replacement is applied. This is a fundamental VSCode limitation — hyphens are word separators and cannot be included in the word pattern.
+
+The same approach applies to `@`-prefixed state aliases in state key completions.
 
 ### Diagnostics Refresh
 

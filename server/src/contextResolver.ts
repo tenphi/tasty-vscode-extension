@@ -104,7 +104,7 @@ export function getContextAtPosition(
     return null;
   }
 
-  const { node, parent, propertyName, inString, stringContent, stringOffset } = nodeInfo;
+  const { node, parent, propertyName, inString, stringContent, stringOffset, objectDepth } = nodeInfo;
 
   // Determine context type
   let type: PositionContextType = 'unknown';
@@ -127,7 +127,20 @@ export function getContextAtPosition(
         type = 'tokenDefinition';
       }
     } else if (propertyName.startsWith('@')) {
-      type = 'atRule';
+      // @keyframes and @properties are always special at-rule structures
+      if (propertyName === '@keyframes' || propertyName === '@properties') {
+        type = 'atRule';
+      } else if (inString && isPropertyAssignmentKey(node, parent)) {
+        // Editing a @-prefixed key: always stateKey
+        // - Root level: state alias definition (e.g., '@mobile': ':hover') — suggest aliases to define
+        // - Nested: state key usage (e.g., margin: { '@mobile': '0' }) — suggest aliases to use
+        type = 'stateKey';
+      } else if (inString) {
+        // Editing the value of an @-prefixed property
+        type = 'propertyValue';
+      } else {
+        type = 'atRule';
+      }
     } else if (/^[A-Z]/.test(propertyName)) {
       type = 'subElement';
     } else if (inString && isPropertyAssignmentKey(node, parent)) {
@@ -175,6 +188,8 @@ interface NodeInfo {
   inString: boolean;
   stringContent?: string;
   stringOffset?: number;
+  /** Nesting depth: 0 = root style object, 1+ = inside nested mapping/sub-element */
+  objectDepth: number;
 }
 
 /**
@@ -187,12 +202,18 @@ function findNodeAtOffset(
 ): NodeInfo | null {
   let result: NodeInfo | null = null;
 
-  function visit(node: ts.Node, parent?: ts.Node, currentPropertyName?: string): void {
+  function visit(node: ts.Node, parent?: ts.Node, currentPropertyName?: string, currentDepth: number = 0): void {
     const start = node.getStart(sourceFile);
     const end = node.getEnd();
 
     if (offset < start || offset > end) {
       return;
+    }
+
+    // Track nesting depth: increment when entering a nested ObjectLiteralExpression
+    let depth = currentDepth;
+    if (ts.isObjectLiteralExpression(node) && node !== root) {
+      depth++;
     }
 
     // Track property name context
@@ -218,6 +239,7 @@ function findNodeAtOffset(
           inString: true,
           stringContent: node.text,
           stringOffset: offset - stringStart,
+          objectDepth: depth,
         };
         return;
       }
@@ -229,10 +251,11 @@ function findNodeAtOffset(
       parent,
       propertyName: propName,
       inString: false,
+      objectDepth: depth,
     };
 
     // Recurse into children
-    ts.forEachChild(node, (child) => visit(child, node, propName));
+    ts.forEachChild(node, (child) => visit(child, node, propName, depth));
   }
 
   visit(root);

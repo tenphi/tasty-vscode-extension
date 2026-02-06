@@ -377,12 +377,16 @@ connection.onCompletion(async (params: CompletionParams) => {
 
     const offset = document.offsetAt(params.position);
 
+    connection.console.log(`[completion] offset=${offset}, pos=${params.position.line}:${params.position.character}, contexts=${contexts.length}, jsxProps=${jsxStyleProps.length}`);
+
     // First check if we're inside a JSX style prop
     const jsxProp = findContainingJsxStyleProp(offset, jsxStyleProps);
     if (jsxProp) {
       const jsxCtx = getJsxStylePropContext(document, params.position, jsxProp);
       const context = jsxPropToCompletionContext(jsxCtx, params.position);
-      return getCompletions(context, config, localDefs);
+      const items = getCompletions(context, config, localDefs);
+      connection.console.log(`[completion] JSX prop: ${jsxProp.propName}, items=${items.length}`);
+      return items;
     }
 
     // Fall back to style object context detection
@@ -393,9 +397,28 @@ connection.onCompletion(async (params: CompletionParams) => {
       contexts,
     );
 
+    connection.console.log(`[completion] positionContext: type=${positionContext?.type}, propName=${positionContext?.propertyName}, inString=${positionContext?.inString}, textBefore=${JSON.stringify(positionContext?.textBefore)}`);
+
     // Convert to completion context format
     const context = toCompletionContext(positionContext, params.position);
-    return getCompletions(context, config, localDefs);
+
+    connection.console.log(`[completion] completionCtx: isPropValue=${context.isPropertyValue}, isStateKey=${context.isStateKey}, isPropName=${context.isPropertyName}, textBefore=${JSON.stringify(context.textBefore)}, currentToken=${context.currentToken}`);
+
+    const configTokens = Array.isArray(config.tokens) ? config.tokens : [];
+    connection.console.log(`[completion] config tokens: ${configTokens.length}, local tokens: ${localDefs.tokens.size}`);
+
+    const items = getCompletions(context, config, localDefs);
+    connection.console.log(`[completion] returned ${items.length} items`);
+
+    // Log first color token item details for debugging client-side filtering
+    if (items.length > 0) {
+      const sample = items[0];
+      const te = sample.textEdit;
+      const teRange = te && 'range' in te ? `[${te.range.start.line}:${te.range.start.character}-${te.range.end.line}:${te.range.end.character}]` : 'none';
+      connection.console.log(`[completion] sample item: label=${sample.label}, filterText=${sample.filterText}, textEdit=${teRange}, insertText=${sample.insertText}`);
+    }
+
+    return items;
   } catch (error) {
     connection.console.error(`Completion error: ${error}`);
     return [];

@@ -148,21 +148,20 @@ function getPropertyValueCompletions(
 
         const isLocal = localDefs.tokens.has(token);
         const textEdit = createTokenTextEdit(context, token);
-        // Create alternative filter text by removing hyphens (helps with word boundary issues)
-        const filterTextNoHyphens = token.replace(/-/g, '');
-        
+
         items.push({
           label: token,
           kind: CompletionItemKind.Color,
           detail: isLocal ? 'color token (local)' : 'color token',
           sortText: isLocal ? `00-local-${token}` : `01-${token}`,
-          // Use textEdit to replace the entire token, bypassing VSCode's word filtering
+          // textEdit replaces from # to cursor with the full token
           textEdit,
           // insertText as fallback when textEdit is not available
           insertText: token,
-          // filterText: use the token itself, or a version without hyphens to help matching
-          filterText: currentToken || filterTextNoHyphens,
-          // Commit characters help trigger completion on space or comma
+          // Full token with hyphens removed: the word at cursor grows as the user types
+          // (e.g. '#', '#p', '#pr'), so filterText must be the full name (with prefix)
+          // to keep matching. Hyphens are removed because '-' breaks the word boundary.
+          filterText: token.replace(/-/g, ''),
           commitCharacters: [' ', ',', ')'],
         });
       }
@@ -180,21 +179,20 @@ function getPropertyValueCompletions(
 
         const isLocal = localDefs.tokens.has(token);
         const textEdit = createTokenTextEdit(context, token);
-        // Create alternative filter text by removing hyphens and $ prefix
-        const filterTextNoHyphens = token.replace(/-/g, '').replace(/^\$/, '');
-        
+
         items.push({
           label: token,
           kind: CompletionItemKind.Variable,
           detail: isLocal ? 'custom property (local)' : 'custom property',
           sortText: isLocal ? `00-local-${token}` : `01-${token}`,
-          // Use textEdit to replace the entire token, bypassing VSCode's word filtering
+          // textEdit replaces from $ to cursor with the full token
           textEdit,
           // insertText as fallback
           insertText: token,
-          // filterText: multiple options to help matching
-          filterText: currentToken || filterTextNoHyphens,
-          // Commit characters
+          // Full token with hyphens removed: the word at cursor grows as the user types
+          // (e.g. '$', '$s', '$si'), so filterText must be the full name (with prefix)
+          // to keep matching. Hyphens are removed because '-' breaks the word boundary.
+          filterText: token.replace(/-/g, ''),
           commitCharacters: [' ', ',', ')'],
         });
       }
@@ -405,6 +403,51 @@ function getPropertyValueCompletions(
 }
 
 /**
+ * Detect a partial @-alias being typed within a state key string.
+ * Returns the partial text (e.g., '@mo') and its document column start,
+ * or undefined if no partial alias is being typed.
+ */
+function extractPartialAtAlias(
+  textBefore: string,
+  position?: Position,
+): { partial: string; startColumn: number } | undefined {
+  if (!position) return undefined;
+
+  const lastAtIdx = textBefore.lastIndexOf('@');
+  if (lastAtIdx < 0) return undefined;
+
+  const afterAt = textBefore.slice(lastAtIdx);
+
+  // Must look like a simple alias identifier (not @media(, @root(, etc.)
+  if (!/^@[a-zA-Z0-9_-]*$/.test(afterAt)) return undefined;
+
+  return {
+    partial: afterAt,
+    startColumn: position.character - afterAt.length,
+  };
+}
+
+/**
+ * Create a TextEdit for an @-alias completion that replaces just the
+ * partial @-alias portion (e.g., '@mo' → '@mobile').
+ */
+function createAtAliasTextEdit(
+  alias: extractPartialAtAliasResult,
+  position: Position,
+  newText: string,
+): TextEdit {
+  return TextEdit.replace(
+    Range.create(
+      Position.create(position.line, alias.startColumn),
+      position,
+    ),
+    newText,
+  );
+}
+
+type extractPartialAtAliasResult = NonNullable<ReturnType<typeof extractPartialAtAlias>>;
+
+/**
  * Get completions for state keys.
  */
 function getStateKeyCompletions(
@@ -413,7 +456,11 @@ function getStateKeyCompletions(
   localDefs: LocalDefinitions,
 ): CompletionItem[] {
   const items: CompletionItem[] = [];
-  const { textBefore } = context;
+  const { textBefore, position } = context;
+
+  // Detect if user is typing a partial @ alias within the state key
+  // e.g., textBefore = ':last-child & @mo' → partialAt = { partial: '@mo', startColumn: ... }
+  const partialAt = extractPartialAtAlias(textBefore, position);
 
   // Default state
   items.push({
@@ -426,26 +473,48 @@ function getStateKeyCompletions(
 
   // Local states from this file (higher priority)
   for (const state of localDefs.states) {
-    // Skip if it's a pseudo-class, advanced state, or common modifier (will be added below)
-    if (state.startsWith(':') || state.startsWith('@') || state.startsWith('.')) {
+    // Skip pseudo-classes and class selectors (added in their own sections below)
+    if (state.startsWith(':') || state.startsWith('.')) {
       continue;
     }
-    items.push({
+
+    // For @-prefixed states, skip if already in config (to avoid duplicates)
+    if (state.startsWith('@') && config.states.includes(state)) {
+      continue;
+    }
+
+    const item: CompletionItem = {
       label: state,
       kind: CompletionItemKind.Keyword,
-      detail: 'state (local)',
+      detail: state.startsWith('@') ? 'state alias (local)' : 'state (local)',
       sortText: `1-local-${state}`,
-    });
+    };
+
+    // Add textEdit for @-prefixed local states to handle word-boundary issues
+    if (state.startsWith('@') && partialAt && position) {
+      item.filterText = partialAt.partial;
+      item.textEdit = createAtAliasTextEdit(partialAt, position, state);
+    }
+
+    items.push(item);
   }
 
   // State aliases from config
   for (const state of config.states) {
-    items.push({
+    const item: CompletionItem = {
       label: state,
       kind: CompletionItemKind.Keyword,
       detail: 'state alias',
       sortText: `2-${state}`,
-    });
+    };
+
+    // Add textEdit to handle @ prefix word-boundary issues
+    if (partialAt && position) {
+      item.filterText = partialAt.partial;
+      item.textEdit = createAtAliasTextEdit(partialAt, position, state);
+    }
+
+    items.push(item);
   }
 
   // Common boolean modifiers
@@ -487,79 +556,83 @@ function getStateKeyCompletions(
     }
   }
 
-  // Advanced states (when typing @)
-  if (textBefore.endsWith('@') || textBefore === '') {
-    items.push({
-      label: '@media',
-      kind: CompletionItemKind.Keyword,
-      detail: 'media query state',
-      insertText: textBefore.endsWith('@') ? 'media($1)' : '@media($1)',
-      insertTextFormat: InsertTextFormat.Snippet,
-      sortText: '4-media',
-      documentation: {
-        kind: MarkupKind.Markdown,
-        value: 'Media query state. Example: `@media(w < 768px)`',
+  // Advanced states (when typing @ or continuing an @ prefix)
+  if (partialAt || textBefore.endsWith('@') || textBefore === '') {
+    // When we have a partial @ alias, use textEdit to replace it.
+    // When textBefore is empty, insert the full text.
+    const advancedStates: Array<{
+      label: string;
+      detail: string;
+      snippet: string;
+      sortText: string;
+      doc: string;
+    }> = [
+      {
+        label: '@media',
+        detail: 'media query state',
+        snippet: '@media($1)',
+        sortText: '4-media',
+        doc: 'Media query state. Example: `@media(w < 768px)`',
       },
-    });
-    items.push({
-      label: '@(...)',
-      kind: CompletionItemKind.Keyword,
-      detail: 'container query shorthand',
-      insertText: textBefore.endsWith('@') ? '($1)' : '@($1)',
-      insertTextFormat: InsertTextFormat.Snippet,
-      sortText: '4-container',
-      documentation: {
-        kind: MarkupKind.Markdown,
-        value: 'Container query shorthand. Examples:\n- `@(w >= 400px)` - unnamed container\n- `@(panel, w >= 300px)` - named container\n- `@(card, $variant=danger)` - style query',
+      {
+        label: '@(...)',
+        detail: 'container query shorthand',
+        snippet: '@($1)',
+        sortText: '4-container',
+        doc: 'Container query shorthand. Examples:\n- `@(w >= 400px)` - unnamed container\n- `@(panel, w >= 300px)` - named container\n- `@(card, $variant=danger)` - style query',
       },
-    });
-    items.push({
-      label: '@root',
-      kind: CompletionItemKind.Keyword,
-      detail: 'root state',
-      insertText: textBefore.endsWith('@') ? 'root($1)' : '@root($1)',
-      insertTextFormat: InsertTextFormat.Snippet,
-      sortText: '4-root',
-      documentation: {
-        kind: MarkupKind.Markdown,
-        value: 'Root state for styling based on document root attributes. Example: `@root(theme=dark)`',
+      {
+        label: '@root',
+        detail: 'root state',
+        snippet: '@root($1)',
+        sortText: '4-root',
+        doc: 'Root state for styling based on document root attributes. Example: `@root(theme=dark)`',
       },
-    });
-    items.push({
-      label: '@own',
-      kind: CompletionItemKind.Keyword,
-      detail: 'own state (for sub-elements)',
-      insertText: textBefore.endsWith('@') ? 'own($1)' : '@own($1)',
-      insertTextFormat: InsertTextFormat.Snippet,
-      sortText: '4-own',
-      documentation: {
-        kind: MarkupKind.Markdown,
-        value: "Sub-element's own state. Use inside sub-element style blocks. Example: `@own(hovered)`",
+      {
+        label: '@own',
+        detail: 'own state (for sub-elements)',
+        snippet: '@own($1)',
+        sortText: '4-own',
+        doc: "Sub-element's own state. Use inside sub-element style blocks. Example: `@own(hovered)`",
       },
-    });
-    items.push({
-      label: '@supports',
-      kind: CompletionItemKind.Keyword,
-      detail: 'supports query',
-      insertText: textBefore.endsWith('@') ? 'supports($1)' : '@supports($1)',
-      insertTextFormat: InsertTextFormat.Snippet,
-      sortText: '4-supports',
-      documentation: {
-        kind: MarkupKind.Markdown,
-        value: 'Feature/selector support query. Examples:\n- `@supports(display: grid-lanes)`\n- `@supports($, :has(*))` - selector support',
+      {
+        label: '@supports',
+        detail: 'supports query',
+        snippet: '@supports($1)',
+        sortText: '4-supports',
+        doc: 'Feature/selector support query. Examples:\n- `@supports(display: grid-lanes)`\n- `@supports($, :has(*))` - selector support',
       },
-    });
-    items.push({
-      label: '@starting',
-      kind: CompletionItemKind.Keyword,
-      detail: 'entry animation state',
-      insertText: textBefore.endsWith('@') ? 'starting' : '@starting',
-      sortText: '4-starting',
-      documentation: {
-        kind: MarkupKind.Markdown,
-        value: 'Entry animation state using `@starting-style`. Use with `transition` for entry animations.',
+      {
+        label: '@starting',
+        detail: 'entry animation state',
+        snippet: '@starting',
+        sortText: '4-starting',
+        doc: 'Entry animation state using `@starting-style`. Use with `transition` for entry animations.',
       },
-    });
+    ];
+
+    for (const state of advancedStates) {
+      const item: CompletionItem = {
+        label: state.label,
+        kind: CompletionItemKind.Keyword,
+        detail: state.detail,
+        insertTextFormat: InsertTextFormat.Snippet,
+        sortText: state.sortText,
+        documentation: {
+          kind: MarkupKind.Markdown,
+          value: state.doc,
+        },
+      };
+
+      if (partialAt && position) {
+        item.filterText = partialAt.partial;
+        item.textEdit = createAtAliasTextEdit(partialAt, position, state.snippet);
+      } else {
+        item.insertText = state.snippet;
+      }
+
+      items.push(item);
+    }
   }
 
   // Logical operators
