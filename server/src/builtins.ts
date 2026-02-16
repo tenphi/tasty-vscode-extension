@@ -128,7 +128,7 @@ export const STYLE_PROPERTIES = {
   ],
 
   // Special
-  special: ['@keyframes', '@properties', '$'],
+  special: ['@keyframes', '@properties', '$', 'recipe'],
 };
 
 /**

@@ -63,6 +63,19 @@ export interface TastyExtensionConfig {
   presetDescriptions?: Record<string, string>;
 
   /**
+   * Valid recipe names for the `recipe` style property.
+   * Recipes are predefined, named style bundles registered via configure({ recipes }).
+   * @example ['card', 'elevated', 'rounded']
+   */
+  recipes?: string[];
+
+  /**
+   * Descriptions for recipes, shown on hover.
+   * @example { 'card': 'Card layout with padding, border, and radius' }
+   */
+  recipeDescriptions?: Record<string, string>;
+
+  /**
    * Descriptions for state aliases, shown on hover.
    * Provides human-readable explanations of what each state alias means.
    * @example { '@mobile': 'Mobile viewport (width < 768px)', '@dark': 'Dark theme mode' }
@@ -97,10 +110,14 @@ export interface MergedConfig {
   states: string[];
   /** All valid presets */
   presets: string[];
+  /** All valid recipes */
+  recipes: string[];
   /** Token descriptions for hover */
   tokenDescriptions: Record<string, string>;
   /** Preset descriptions for hover */
   presetDescriptions: Record<string, string>;
+  /** Recipe descriptions for hover */
+  recipeDescriptions: Record<string, string>;
   /** State alias descriptions for hover */
   stateDescriptions: Record<string, string>;
 }
@@ -115,8 +132,10 @@ export function createEmptyConfig(): MergedConfig {
     funcs: false,
     states: [],
     presets: [],
+    recipes: [],
     tokenDescriptions: {},
     presetDescriptions: {},
+    recipeDescriptions: {},
     stateDescriptions: {},
   };
 }
@@ -175,6 +194,11 @@ export function mergeConfigs(
     result.presets = [...new Set([...result.presets, ...override.presets])];
   }
 
+  // Handle recipes (always merge arrays)
+  if (Array.isArray(override.recipes)) {
+    result.recipes = [...new Set([...result.recipes, ...override.recipes])];
+  }
+
   // Handle tokenDescriptions (merge objects)
   if (override.tokenDescriptions) {
     result.tokenDescriptions = { ...result.tokenDescriptions, ...override.tokenDescriptions };
@@ -183,6 +207,11 @@ export function mergeConfigs(
   // Handle presetDescriptions (merge objects)
   if (override.presetDescriptions) {
     result.presetDescriptions = { ...result.presetDescriptions, ...override.presetDescriptions };
+  }
+
+  // Handle recipeDescriptions (merge objects)
+  if (override.recipeDescriptions) {
+    result.recipeDescriptions = { ...result.recipeDescriptions, ...override.recipeDescriptions };
   }
 
   // Handle stateDescriptions (merge objects)

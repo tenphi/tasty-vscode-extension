@@ -66,6 +66,11 @@ export function getHoverInfo(
     return getPresetHover(word, config);
   }
 
+  // Check for recipe
+  if (config.recipes.includes(word)) {
+    return getRecipeHover(word, config);
+  }
+
   // Check for preset modifier
   if (PRESET_MODIFIERS.includes(word)) {
     return getPresetModifierHover(word);
@@ -296,6 +301,27 @@ function getPresetHover(preset: string, config: MergedConfig): Hover {
   }
   
   content += `\n\nCan be combined with modifiers: \`${preset} strong\`, \`${preset} italic\``;
+  
+  return {
+    contents: {
+      kind: MarkupKind.Markdown,
+      value: content,
+    },
+  };
+}
+
+/**
+ * Get hover for a recipe.
+ */
+function getRecipeHover(recipe: string, config: MergedConfig): Hover {
+  let content = `**Style Recipe**: \`${recipe}\``;
+  
+  const description = config.recipeDescriptions?.[recipe];
+  if (description) {
+    content += `\n\n${description}`;
+  }
+  
+  content += `\n\nCompose multiple recipes: \`recipe: '${recipe}, other'\``;
   
   return {
     contents: {

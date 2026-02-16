@@ -94,6 +94,7 @@ export const DiagnosticCode = {
   UnknownUnit: 'tasty/unknown-unit',
   UnknownPreset: 'tasty/unknown-preset',
   UnknownPresetModifier: 'tasty/unknown-preset-modifier',
+  UnknownRecipe: 'tasty/unknown-recipe',
   UnknownStateAlias: 'tasty/unknown-state-alias',
   InvalidStateKey: 'tasty/invalid-state-key',
   DeprecatedProperty: 'tasty/deprecated-property',
@@ -528,6 +529,27 @@ function validateToken(
         },
         message: createUnknownTokenMessage('preset or modifier', token.value, allPresetsAndModifiers),
         code: DiagnosticCode.UnknownPreset,
+        source: 'tasty',
+      });
+    }
+  }
+
+  // Validate recipes (for recipe property)
+  // Recipe values are comma-separated names like 'card, elevated'
+  // Each identifier in a recipe value is validated against config.recipes
+  if (propertyName === 'recipe' && token.type === TastyTokenType.Identifier) {
+    const isValidRecipe = config.recipes.includes(token.value);
+    const isGlobalValue = CSS_GLOBAL_VALUES.includes(token.value);
+    
+    if (config.recipes.length > 0 && !isValidRecipe && !isGlobalValue) {
+      diagnostics.push({
+        severity: DiagnosticSeverity.Warning,
+        range: {
+          start: document.positionAt(offset + token.start),
+          end: document.positionAt(offset + token.end),
+        },
+        message: createUnknownTokenMessage('recipe', token.value, config.recipes),
+        code: DiagnosticCode.UnknownRecipe,
         source: 'tasty',
       });
     }

@@ -197,6 +197,25 @@ function validateConfig(config: unknown): TastyExtensionConfig | null {
     result.presets = obj.presets.filter((p): p is string => typeof p === 'string');
   }
 
+  // Validate recipes
+  if (Array.isArray(obj.recipes)) {
+    result.recipes = obj.recipes.filter((r): r is string => typeof r === 'string');
+  }
+
+  // Validate description objects
+  if (obj.tokenDescriptions && typeof obj.tokenDescriptions === 'object') {
+    result.tokenDescriptions = obj.tokenDescriptions as Record<string, string>;
+  }
+  if (obj.presetDescriptions && typeof obj.presetDescriptions === 'object') {
+    result.presetDescriptions = obj.presetDescriptions as Record<string, string>;
+  }
+  if (obj.recipeDescriptions && typeof obj.recipeDescriptions === 'object') {
+    result.recipeDescriptions = obj.recipeDescriptions as Record<string, string>;
+  }
+  if (obj.stateDescriptions && typeof obj.stateDescriptions === 'object') {
+    result.stateDescriptions = obj.stateDescriptions as Record<string, string>;
+  }
+
   return result;
 }
 

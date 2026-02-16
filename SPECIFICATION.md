@@ -166,6 +166,7 @@ Style props on React components (capitalized names) are automatically highlighte
 | At-rules | `@keyframes`, `@properties` |
 | Presets | `h1`, `t2` (from config) |
 | Preset modifiers | `strong`, `italic`, `tight` |
+| Recipes | `card`, `elevated` (from config, in `recipe` property) |
 | Directions | `top`, `left`, `bottom right` |
 | Functions | `calc()`, `rgb()`, `url()` |
 
@@ -178,6 +179,7 @@ Style props on React components (capitalized names) are automatically highlighte
 | Unknown token | Warning | When `tokens` defined in config AND not defined locally |
 | Unknown unit | Warning | When `units` defined in config |
 | Unknown preset | Warning | When `presets` defined in config |
+| Unknown recipe | Warning | When `recipes` defined in config |
 | Unknown state alias | Warning | When `@alias` used but not in config or defined locally |
 | Invalid state key syntax | Error | Always |
 | `@own()` outside sub-element | Warning | When `@own(...)` is used at root level |
@@ -300,6 +302,7 @@ Local definitions are:
 - Custom properties (`$spacing`, etc. from config)
 - Preset names (from config)
 - Preset modifiers (`strong`, `italic`, `icon`, `tight`)
+- Recipe names (from config, for `recipe` property; filters already-used recipes in comma-separated values)
 - State aliases (`@mobile`, etc. from config)
 - Directional modifiers (`top`, `right`, `bottom`, `left`)
 - Units (built-in + from config)
@@ -313,10 +316,11 @@ Hover provides information for:
 - Token definitions (color tokens, custom properties) with descriptions from config
 - Unit descriptions (built-in or custom)
 - Preset information with descriptions from config
+- Recipe information with descriptions from config
 - State aliases with definitions from config
 - Special selectors like `:has()` with Tasty-specific behavior explained
 
-Token, preset, and state descriptions can be provided via the `tokenDescriptions`, `presetDescriptions`, and `stateDescriptions` fields in the config file.
+Token, preset, recipe, and state descriptions can be provided via the `tokenDescriptions`, `presetDescriptions`, `recipeDescriptions`, and `stateDescriptions` fields in the config file.
 
 **Note**: Property descriptions are derived from TypeScript types in the Tasty core library (`StylesInterface`). The extension does not maintain separate descriptions for CSS properties. If more detailed property descriptions are needed, they should be added to the Tasty library's TypeScript types as JSDoc comments.
 
@@ -360,6 +364,9 @@ export default {
   // Valid preset names (project-specific, no built-in presets)
   presets: ['h1', 'h2', 'h3', 't1', 't2', 't3'],
 
+  // Valid recipe names (predefined style bundles from configure({ recipes }))
+  recipes: ['card', 'elevated', 'rounded'],
+
   // Descriptions for hover information
   tokenDescriptions: {
     '#primary': 'Primary brand color',
@@ -370,6 +377,11 @@ export default {
   presetDescriptions: {
     'h1': 'Main page heading (32px, bold)',
     't1': 'Large body text (18px)',
+  },
+
+  recipeDescriptions: {
+    'card': 'Card layout with padding, border, and radius',
+    'elevated': 'Elevated appearance with box shadow',
   },
 
   stateDescriptions: {
@@ -389,8 +401,10 @@ export default {
 | `funcs` | `string[] \| false` | Valid function names. `false` disables validation |
 | `states` | `string[]` | State alias names (must start with `@`) |
 | `presets` | `string[]` | Valid preset names for `preset` property |
+| `recipes` | `string[]` | Valid recipe names for `recipe` property |
 | `tokenDescriptions` | `Record<string, string>` | Descriptions for tokens (shown on hover) |
 | `presetDescriptions` | `Record<string, string>` | Descriptions for presets (shown on hover) |
+| `recipeDescriptions` | `Record<string, string>` | Descriptions for recipes (shown on hover) |
 | `stateDescriptions` | `Record<string, string>` | Descriptions for state aliases (shown on hover) |
 
 ### Extending from Packages
@@ -454,7 +468,7 @@ All Tasty properties including:
 - **Alignment**: `align`, `justify`, `place`, `alignItems`
 - **Position**: `position`, `inset`, `zIndex`, `order`
 - **Other**: `overflow`, `transition`, `animation`, `transform`, `cursor`
-- **Special**: `@keyframes`, `@properties`, `$` (selector affix)
+- **Special**: `@keyframes`, `@properties`, `$` (selector affix), `recipe` (named style bundles)
 
 ---
 

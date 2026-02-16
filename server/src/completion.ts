@@ -231,6 +231,38 @@ function getPropertyValueCompletions(
     }
   }
 
+  // Recipes (for recipe property)
+  if (propertyName === 'recipe') {
+    // Extract the last segment after comma (recipes are comma-separated)
+    const lastComma = textBefore.lastIndexOf(',');
+    const currentSegment = lastComma >= 0 ? textBefore.slice(lastComma + 1).trim() : textBefore.trim();
+
+    for (const recipe of config.recipes) {
+      // Skip recipes already listed before the last comma
+      if (lastComma >= 0) {
+        const alreadyUsed = textBefore
+          .slice(0, lastComma)
+          .split(',')
+          .map((s) => s.trim());
+        if (alreadyUsed.includes(recipe)) {
+          continue;
+        }
+      }
+
+      // Server-side prefix filtering
+      if (currentSegment && !recipe.toLowerCase().startsWith(currentSegment.toLowerCase())) {
+        continue;
+      }
+
+      items.push({
+        label: recipe,
+        kind: CompletionItemKind.EnumMember,
+        detail: 'style recipe',
+        sortText: `0-${recipe}`,
+      });
+    }
+  }
+
   // Units (when typing a number)
   if (/[0-9]$/.test(textBefore)) {
     const units = Array.isArray(config.units) ? config.units : BUILT_IN_UNITS;
