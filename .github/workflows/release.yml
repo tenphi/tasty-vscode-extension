@@ -1,0 +1,106 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Create Release Pull Request or Publish
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          publish: npm run package
+          title: 'chore: version packages'
+          commit: 'chore: version packages'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release with .vsix
+        if: steps.changesets.outputs.published == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            const tag = `v${pkg.version}`;
+
+            const vsixFile = fs.readdirSync('.').find(f => f.endsWith('.vsix'));
+            if (!vsixFile) {
+              core.setFailed('No .vsix file found after packaging');
+              return;
+            }
+
+            let release;
+            try {
+              const { data: existing } = await github.rest.repos.getReleaseByTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag,
+              });
+              release = await github.rest.repos.updateRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: existing.id,
+                name: tag,
+                generate_release_notes: true,
+              });
+              core.info(`Updated existing release for ${tag}`);
+            } catch (e) {
+              if (e.status === 404) {
+                release = await github.rest.repos.createRelease({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  tag_name: tag,
+                  name: tag,
+                  generate_release_notes: true,
+                });
+                core.info(`Created release for ${tag}`);
+              } else {
+                throw e;
+              }
+            }
+
+            const vsixPath = path.resolve(vsixFile);
+            const vsixData = fs.readFileSync(vsixPath);
+
+            await github.rest.repos.uploadReleaseAsset({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: release.data.id,
+              name: vsixFile,
+              data: vsixData,
+            });
+            core.info(`Uploaded ${vsixFile} to release ${tag}`);

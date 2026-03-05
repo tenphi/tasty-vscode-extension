@@ -7,7 +7,9 @@
   "engines": {
     "vscode": "^1.74.0"
   },
-  "categories": ["Programming Languages"],
+  "categories": [
+    "Programming Languages"
+  ],
   "keywords": [
     "tasty",
     "css-in-js",
@@ -16,6 +18,21 @@
     "tsx",
     "typescript"
   ],
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@changesets/changelog-github": "^0.5.1",
+    "@changesets/cli": "^2.29.4",
+    "@eslint/json": "^0.12.0",
+    "@vscode/vsce": "^3.3.2",
+    "eslint": "^9.22.0",
+    "prettier": "^3.5.3"
+  },
   "contributes": {
     "grammars": [
       {
@@ -35,7 +52,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/cube-js/cube.git"
+    "url": "https://github.com/tenphi/tasty-vscode-extension.git"
   },
   "license": "MIT"
 }

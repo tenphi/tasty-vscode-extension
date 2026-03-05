@@ -200,9 +200,7 @@
             }
           },
           "contentName": "meta.embedded.block.tasty",
-          "patterns": [
-            { "include": "#tasty-syntax" }
-          ]
+          "patterns": [{ "include": "#tasty-syntax" }]
         },
         {
           "comment": "Style prop with object value: gap={{ '': '2x', hovered: '3x' }}",
@@ -307,9 +305,7 @@
               "name": "punctuation.section.embedded.end.tsx"
             }
           },
-          "patterns": [
-            { "include": "#jsx-expression-content" }
-          ]
+          "patterns": [{ "include": "#jsx-expression-content" }]
         },
         {
           "comment": "Regular attribute with string value: className=\"wrapper\"",
@@ -349,9 +345,7 @@
               "name": "punctuation.section.embedded.end.tsx"
             }
           },
-          "patterns": [
-            { "include": "#jsx-expression-content" }
-          ]
+          "patterns": [{ "include": "#jsx-expression-content" }]
         }
       ]
     },
@@ -362,9 +356,7 @@
           "comment": "Nested braces",
           "begin": "\\{",
           "end": "\\}",
-          "patterns": [
-            { "include": "#jsx-expression-content" }
-          ]
+          "patterns": [{ "include": "#jsx-expression-content" }]
         },
         {
           "comment": "Arrow function",
@@ -374,25 +366,19 @@
           "comment": "Strings",
           "begin": "(['\"])",
           "end": "\\1",
-          "patterns": [
-            { "match": "\\\\." }
-          ]
+          "patterns": [{ "match": "\\\\." }]
         },
         {
           "comment": "Parentheses",
           "begin": "\\(",
           "end": "\\)",
-          "patterns": [
-            { "include": "#jsx-expression-content" }
-          ]
+          "patterns": [{ "include": "#jsx-expression-content" }]
         },
         {
           "comment": "Brackets",
           "begin": "\\[",
           "end": "\\]",
-          "patterns": [
-            { "include": "#jsx-expression-content" }
-          ]
+          "patterns": [{ "include": "#jsx-expression-content" }]
         },
         {
           "comment": "Fallback to TSX expression grammar",
@@ -1389,9 +1375,7 @@
               "name": "punctuation.section.media-query.end.tasty"
             }
           },
-          "patterns": [
-            { "include": "#advanced-state-inner" }
-          ]
+          "patterns": [{ "include": "#advanced-state-inner" }]
         },
         {
           "comment": "Advanced @root/@own/@supports states with parentheses",
@@ -1411,9 +1395,7 @@
               "name": "punctuation.section.advanced-state.end.tasty"
             }
           },
-          "patterns": [
-            { "include": "#advanced-state-inner" }
-          ]
+          "patterns": [{ "include": "#advanced-state-inner" }]
         },
         {
           "comment": "Container query shorthand @(...)",
@@ -1433,9 +1415,7 @@
               "name": "punctuation.section.container-query.end.tasty"
             }
           },
-          "patterns": [
-            { "include": "#advanced-state-inner" }
-          ]
+          "patterns": [{ "include": "#advanced-state-inner" }]
         },
         {
           "comment": "@starting state (no parentheses)",
@@ -1538,9 +1518,7 @@
               "name": "punctuation.section.function.end.css"
             }
           },
-          "patterns": [
-            { "include": "#pseudo-class-function-content" }
-          ]
+          "patterns": [{ "include": "#pseudo-class-function-content" }]
         },
         {
           "comment": "CSS pseudo-classes without function notation: :hover, :focus, etc.",
@@ -1908,10 +1886,14 @@
           "begin": "\\[",
           "end": "\\]",
           "beginCaptures": {
-            "0": { "name": "punctuation.definition.attribute-selector.begin.tasty" }
+            "0": {
+              "name": "punctuation.definition.attribute-selector.begin.tasty"
+            }
           },
           "endCaptures": {
-            "0": { "name": "punctuation.definition.attribute-selector.end.tasty" }
+            "0": {
+              "name": "punctuation.definition.attribute-selector.end.tasty"
+            }
           },
           "patterns": [
             {
@@ -1968,9 +1950,7 @@
               "name": "punctuation.section.function.end.css"
             }
           },
-          "patterns": [
-            { "include": "#pseudo-class-function-content" }
-          ]
+          "patterns": [{ "include": "#pseudo-class-function-content" }]
         },
         {
           "comment": "Simple pseudo-classes inside: :hover, :focus",
@@ -2059,7 +2039,7 @@
         }
       ]
     },
-"style-prop-name-pattern": {
+    "style-prop-name-pattern": {
       "comment": "Style prop names - uses match pattern with lookahead for =",
       "patterns": [
         {
