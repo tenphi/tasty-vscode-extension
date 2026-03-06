@@ -47,7 +47,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release with .vsix
-        if: steps.changesets.outputs.published == 'true'
+        if: steps.changesets.outputs.hasChangesets == 'false'
         uses: actions/github-script@v7
         with:
           script: |
@@ -57,44 +57,35 @@ jobs:
             const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
             const tag = `v${pkg.version}`;
 
-            const vsixFile = fs.readdirSync('.').find(f => f.endsWith('.vsix'));
-            if (!vsixFile) {
-              core.setFailed('No .vsix file found after packaging');
-              return;
-            }
-
-            let release;
+            // Skip if a release already exists for this version (idempotent)
             try {
-              const { data: existing } = await github.rest.repos.getReleaseByTag({
+              await github.rest.repos.getReleaseByTag({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 tag,
               });
-              release = await github.rest.repos.updateRelease({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                release_id: existing.id,
-                name: tag,
-                generate_release_notes: true,
-              });
-              core.info(`Updated existing release for ${tag}`);
+              core.info(`Release ${tag} already exists, skipping`);
+              return;
             } catch (e) {
-              if (e.status === 404) {
-                release = await github.rest.repos.createRelease({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  tag_name: tag,
-                  name: tag,
-                  generate_release_notes: true,
-                });
-                core.info(`Created release for ${tag}`);
-              } else {
-                throw e;
-              }
+              if (e.status !== 404) throw e;
             }
 
-            const vsixPath = path.resolve(vsixFile);
-            const vsixData = fs.readFileSync(vsixPath);
+            const vsixFile = fs.readdirSync('.').find(f => f.endsWith('.vsix'));
+            if (!vsixFile) {
+              core.info('No .vsix file found, skipping release');
+              return;
+            }
+
+            const release = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: tag,
+              name: tag,
+              generate_release_notes: true,
+            });
+            core.info(`Created release for ${tag}`);
+
+            const vsixData = fs.readFileSync(path.resolve(vsixFile));
 
             await github.rest.repos.uploadReleaseAsset({
               owner: context.repo.owner,
