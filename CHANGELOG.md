@@ -1,5 +1,11 @@
 # tasty-syntax-highlighting
 
+## 3.0.3
+
+### Patch Changes
+
+- [`fc70825`](https://github.com/tenphi/tasty-vscode-extension/commit/fc70825d748746cc34b55fa5d24c2d15e801b9e3) Thanks [@tenphi](https://github.com/tenphi)! - Clean global patterns to avoid style leakage.
+
 ## 3.0.2
 
 ### Patch Changes
