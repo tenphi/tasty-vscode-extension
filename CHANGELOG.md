@@ -1,5 +1,11 @@
 # tasty-syntax-highlighting
 
+## 3.0.4
+
+### Patch Changes
+
+- [`d339bd5`](https://github.com/tenphi/tasty-vscode-extension/commit/d339bd51a4734b9247cb478f43641b7fe54362ce) Thanks [@tenphi](https://github.com/tenphi)! - Fix compound CSS values like `inline-grid` being split into three tokens instead of one. Improve color token highlighting (`#primary`, `#surface`, etc.) to use a distinct scope from simple values.
+
 ## 3.0.3
 
 ### Patch Changes
