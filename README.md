@@ -9,7 +9,7 @@ The extension injects a TextMate grammar that highlights Tasty-specific syntax e
 - **Color tokens** — `#primary`, `#purple.5`, `#danger`
 - **Custom properties** — `$gap`, `$radius`, `$$property-ref`
 - **Custom units** — `2x`, `1r`, `1.5bw`, `3cr`
-- **Typography presets** — `h1`, `t2`, `t3 strong`
+- **Typography presets** — `h1`, `t2`, `t3 / strong`, `italic`
 - **State keys** — `:hover`, `hovered`, `@mobile`, `@media(w < 768px)`
 - **Logical operators** — `&`, `|`, `^`, `!`
 - **CSS functions** — `rgb()`, `calc()`, `url()`, etc.
