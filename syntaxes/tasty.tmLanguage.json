@@ -364,6 +364,44 @@
           ]
         },
         {
+          "comment": "Quoted at-rule property keys: '@keyframes', '@properties', '@fontFace', '@counterStyle'",
+          "name": "meta.object-property.at-rule.tasty",
+          "match": "(['\"`])(@keyframes|@properties|@fontFace|@counterStyle)(\\1)\\s*(:)",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.tsx"
+            },
+            "2": {
+              "name": "keyword.control.at-rule.tasty"
+            },
+            "3": {
+              "name": "punctuation.definition.string.end.tsx"
+            },
+            "4": {
+              "name": "punctuation.separator.key-value.tsx"
+            }
+          }
+        },
+        {
+          "comment": "Quoted color token definition key: '#primary':",
+          "name": "meta.object-property.color-token.tasty",
+          "match": "(['\"`])(#[a-zA-Z][a-zA-Z0-9_-]*)(\\1)\\s*(:)",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.tsx"
+            },
+            "2": {
+              "name": "entity.name.type.color.tasty-token"
+            },
+            "3": {
+              "name": "punctuation.definition.string.end.tsx"
+            },
+            "4": {
+              "name": "punctuation.separator.key-value.tsx"
+            }
+          }
+        },
+        {
           "comment": "Complex state expression keys with attribute selectors",
           "name": "meta.object-property.tasty",
           "begin": "(['\"`])",
@@ -431,44 +469,6 @@
               "include": "#tasty-property-value"
             }
           ]
-        },
-        {
-          "comment": "Quoted @keyframes property key",
-          "name": "meta.object-property.at-rule.tasty",
-          "match": "(['\"`])(@keyframes|@properties)(\\1)\\s*(:)",
-          "captures": {
-            "1": {
-              "name": "punctuation.definition.string.begin.tsx"
-            },
-            "2": {
-              "name": "keyword.control.at-rule.tasty"
-            },
-            "3": {
-              "name": "punctuation.definition.string.end.tsx"
-            },
-            "4": {
-              "name": "punctuation.separator.key-value.tsx"
-            }
-          }
-        },
-        {
-          "comment": "Quoted color token definition key: '#primary':",
-          "name": "meta.object-property.color-token.tasty",
-          "match": "(['\"`])(#[a-zA-Z][a-zA-Z0-9_-]*)(\\1)\\s*(:)",
-          "captures": {
-            "1": {
-              "name": "punctuation.definition.string.begin.tsx"
-            },
-            "2": {
-              "name": "entity.name.type.color.tasty-token"
-            },
-            "3": {
-              "name": "punctuation.definition.string.end.tsx"
-            },
-            "4": {
-              "name": "punctuation.separator.key-value.tsx"
-            }
-          }
         },
         {
           "name": "meta.object-property.unquoted.tasty",
@@ -1071,6 +1071,11 @@
         {
           "name": "support.constant.property-value.tasty-preset",
           "match": "\\b(h[1-6]|t[1-4]m?|p[1-4]|m[1-3]|c[1-2]|tag)\\b"
+        },
+        {
+          "name": "support.constant.property-value.tasty-preset-modifier",
+          "match": "\\b(strong|bold|italic|icon|tight)\\b",
+          "comment": "Preset modifier keywords used after / separator"
         },
         {
           "name": "support.constant.property-value.tasty-shape",
