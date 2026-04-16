@@ -1057,12 +1057,37 @@
       "patterns": [
         {
           "name": "support.constant.property-value.tasty",
-          "match": "\\b(none|auto|max-content|min-content|fit-content|stretch|true|false)\\b"
+          "match": "\\b(none|auto|max-content|min-content|fit-content|stretch|true|false|normal)\\b"
         },
         {
           "name": "support.constant.property-value.tasty-display",
           "match": "\\b(inline-flex|inline-grid|inline-block|flow-root|flex|grid|block|inline|contents)\\b",
           "comment": "CSS display values"
+        },
+        {
+          "name": "support.constant.property-value.tasty-alignment",
+          "match": "\\b(flex-start|flex-end|self-start|self-end|space-between|space-around|space-evenly|baseline|start|end)\\b",
+          "comment": "CSS alignment and distribution keywords"
+        },
+        {
+          "name": "support.constant.property-value.tasty-flex-flow",
+          "match": "\\b(row|column|row-reverse|column-reverse|wrap|nowrap|wrap-reverse)\\b",
+          "comment": "CSS flex-direction and flex-wrap values"
+        },
+        {
+          "name": "support.constant.property-value.tasty-position",
+          "match": "\\b(absolute|relative|fixed|sticky|static)\\b",
+          "comment": "CSS position values"
+        },
+        {
+          "name": "support.constant.property-value.tasty-overflow",
+          "match": "\\b(visible|hidden|scroll|clip|ellipsis)\\b",
+          "comment": "CSS overflow and text-overflow values"
+        },
+        {
+          "name": "support.constant.property-value.tasty-css-wide",
+          "match": "\\b(inherit|initial|unset|revert|revert-layer)\\b",
+          "comment": "CSS-wide keywords"
         },
         {
           "name": "support.constant.property-value.tasty-directional",
