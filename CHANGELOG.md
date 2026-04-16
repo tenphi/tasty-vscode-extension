@@ -1,5 +1,11 @@
 # tasty-syntax-highlighting
 
+## 3.0.5
+
+### Patch Changes
+
+- [`6e89d8a`](https://github.com/tenphi/tasty-vscode-extension/commit/6e89d8af0068cd5740044cb5aeb07ee1ae3ad154) Thanks [@tenphi](https://github.com/tenphi)! - Add missing CSS value keyword highlighting for alignment (`flex-start`, `flex-end`, `space-between`, `space-around`, `space-evenly`, `baseline`, `start`, `end`), flex-flow (`row`, `column`, `row-reverse`, `column-reverse`, `wrap`, `nowrap`, `wrap-reverse`), position (`absolute`, `relative`, `fixed`, `sticky`, `static`), overflow (`visible`, `hidden`, `scroll`, `clip`, `ellipsis`), and CSS-wide keywords (`inherit`, `initial`, `unset`, `revert`, `revert-layer`). Also added `normal` to the general keywords.
+
 ## 3.0.4
 
 ### Patch Changes
