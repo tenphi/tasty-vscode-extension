@@ -364,6 +364,63 @@
           ]
         },
         {
+          "comment": "Quoted at-rule keys. Kebab-case, matching the CSS at-rule names Tasty emits: '@keyframes', '@property', '@font-face', '@counter-style', '@function', '@starting'",
+          "name": "meta.object-property.at-rule.tasty",
+          "match": "(['\"`])(@(?:keyframes|property|font-face|counter-style|function|starting))(\\1)\\s*(:)",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.tsx"
+            },
+            "2": {
+              "name": "keyword.control.at-rule.tasty"
+            },
+            "3": {
+              "name": "punctuation.definition.string.end.tsx"
+            },
+            "4": {
+              "name": "punctuation.separator.key-value.tsx"
+            }
+          }
+        },
+        {
+          "comment": "Quoted CSS @function definition key: '$$negative': — the literal callable name, matching the call site $$negative(...)",
+          "name": "meta.object-property.custom-function.tasty",
+          "match": "(['\"`])(\\$\\$[a-zA-Z_][a-zA-Z0-9_-]*)(\\1)\\s*(:)",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.tsx"
+            },
+            "2": {
+              "name": "support.function.custom-function.tasty"
+            },
+            "3": {
+              "name": "punctuation.definition.string.end.tsx"
+            },
+            "4": {
+              "name": "punctuation.separator.key-value.tsx"
+            }
+          }
+        },
+        {
+          "comment": "Quoted color token definition key: '#primary':",
+          "name": "meta.object-property.color-token.tasty",
+          "match": "(['\"`])(#[a-zA-Z][a-zA-Z0-9_-]*)(\\1)\\s*(:)",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.tsx"
+            },
+            "2": {
+              "name": "entity.name.type.color.tasty-token"
+            },
+            "3": {
+              "name": "punctuation.definition.string.end.tsx"
+            },
+            "4": {
+              "name": "punctuation.separator.key-value.tsx"
+            }
+          }
+        },
+        {
           "comment": "Complex state expression keys with attribute selectors",
           "name": "meta.object-property.tasty",
           "begin": "(['\"`])",
@@ -431,44 +488,6 @@
               "include": "#tasty-property-value"
             }
           ]
-        },
-        {
-          "comment": "Quoted @keyframes property key",
-          "name": "meta.object-property.at-rule.tasty",
-          "match": "(['\"`])(@keyframes|@properties)(\\1)\\s*(:)",
-          "captures": {
-            "1": {
-              "name": "punctuation.definition.string.begin.tsx"
-            },
-            "2": {
-              "name": "keyword.control.at-rule.tasty"
-            },
-            "3": {
-              "name": "punctuation.definition.string.end.tsx"
-            },
-            "4": {
-              "name": "punctuation.separator.key-value.tsx"
-            }
-          }
-        },
-        {
-          "comment": "Quoted color token definition key: '#primary':",
-          "name": "meta.object-property.color-token.tasty",
-          "match": "(['\"`])(#[a-zA-Z][a-zA-Z0-9_-]*)(\\1)\\s*(:)",
-          "captures": {
-            "1": {
-              "name": "punctuation.definition.string.begin.tsx"
-            },
-            "2": {
-              "name": "entity.name.type.color.tasty-token"
-            },
-            "3": {
-              "name": "punctuation.definition.string.end.tsx"
-            },
-            "4": {
-              "name": "punctuation.separator.key-value.tsx"
-            }
-          }
         },
         {
           "name": "meta.object-property.unquoted.tasty",
@@ -832,6 +851,13 @@
           "include": "#value-keywords"
         },
         {
+          "comment": "Function calls come before the state patterns, whose bare-identifier fallback would otherwise claim the function name",
+          "include": "#urls"
+        },
+        {
+          "include": "#functions"
+        },
+        {
           "include": "#state-logic-groups"
         },
         {
@@ -839,12 +865,6 @@
         },
         {
           "include": "#state-logic-operators"
-        },
-        {
-          "include": "#functions"
-        },
-        {
-          "include": "#urls"
         },
         {
           "include": "#css-with-units"
@@ -888,6 +908,30 @@
     },
     "custom-properties": {
       "patterns": [
+        {
+          "name": "meta.function-call.custom-function.tasty",
+          "comment": "CSS @function call: $$name(...) → --name(...), ##name(...) → --name-color(...). Must precede the bare $$name/##name reference patterns",
+          "begin": "((?:\\$\\$|##)[a-zA-Z_][a-zA-Z0-9_-]*)\\s*(\\()",
+          "end": "\\)",
+          "beginCaptures": {
+            "1": {
+              "name": "support.function.custom-function.tasty"
+            },
+            "2": {
+              "name": "punctuation.section.function.begin.tasty"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.function.end.tasty"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#tasty-syntax"
+            }
+          ]
+        },
         {
           "name": "variable.other.constant.tasty",
           "match": "\\$\\$[a-zA-Z_][a-zA-Z0-9_-]*",
@@ -1057,7 +1101,13 @@
       "patterns": [
         {
           "name": "support.constant.property-value.tasty",
-          "match": "\\b(none|auto|max-content|min-content|fit-content|stretch|true|false|normal)\\b"
+          "match": "\\b(none|auto-fill|auto-fit|auto-flow|auto|max-content|min-content|fit-content|stretch|true|false|normal)\\b",
+          "comment": "Compound keywords precede their prefixes so a value like auto-fill stays one token"
+        },
+        {
+          "name": "support.constant.property-value.tasty-alignment",
+          "match": "\\b(flex-start|flex-end|self-start|self-end|space-between|space-around|space-evenly|baseline|start|end)\\b",
+          "comment": "CSS alignment and distribution keywords. Precedes the display values, whose `flex` would otherwise claim the head of flex-start"
         },
         {
           "name": "support.constant.property-value.tasty-display",
@@ -1065,13 +1115,8 @@
           "comment": "CSS display values"
         },
         {
-          "name": "support.constant.property-value.tasty-alignment",
-          "match": "\\b(flex-start|flex-end|self-start|self-end|space-between|space-around|space-evenly|baseline|start|end)\\b",
-          "comment": "CSS alignment and distribution keywords"
-        },
-        {
           "name": "support.constant.property-value.tasty-flex-flow",
-          "match": "\\b(row|column|row-reverse|column-reverse|wrap|nowrap|wrap-reverse)\\b",
+          "match": "\\b(row-reverse|column-reverse|wrap-reverse|row|column|wrap|nowrap)\\b",
           "comment": "CSS flex-direction and flex-wrap values"
         },
         {
@@ -1086,12 +1131,22 @@
         },
         {
           "name": "support.constant.property-value.tasty-css-wide",
-          "match": "\\b(inherit|initial|unset|revert|revert-layer)\\b",
+          "match": "\\b(inherit|initial|unset|revert-layer|revert)\\b",
           "comment": "CSS-wide keywords"
+        },
+        {
+          "name": "support.constant.property-value.tasty-corner",
+          "match": "\\b(top-left|top-right|bottom-right|bottom-left)\\b",
+          "comment": "Single-corner radius modifiers. Must precede the directional keywords, which would otherwise split them into three tokens"
         },
         {
           "name": "support.constant.property-value.tasty-directional",
           "match": "\\b(top|right|bottom|left|center)\\b"
+        },
+        {
+          "name": "support.constant.property-value.tasty-modifier",
+          "match": "\\b(dock|longhand|strong|bold|italic|icon|tight)\\b",
+          "comment": "Directional output modifiers (dock, longhand) and preset modifiers (after the / separator)"
         },
         {
           "name": "support.constant.property-value.tasty-preset",
@@ -1136,9 +1191,9 @@
           "patterns": [{ "include": "#advanced-state-inner" }]
         },
         {
-          "comment": "Advanced @root/@own/@supports states with parentheses",
+          "comment": "Advanced @root/@parent/@own/@supports states with parentheses",
           "name": "meta.advanced-state.tasty",
-          "begin": "(@(?:root|own|supports))\\s*(\\()",
+          "begin": "(@(?:root|parent|own|supports))\\s*(\\()",
           "end": "\\)",
           "beginCaptures": {
             "1": {
