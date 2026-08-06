@@ -2,6 +2,8 @@
 
 A VS Code extension that provides syntax highlighting for [Tasty](https://github.com/tenphi/tasty) CSS-in-JS styles in TypeScript, TSX, JavaScript, and JSX files.
 
+**Targets `@tenphi/tasty` v3.** At-rule keys use the CSS at-rule spelling (`@property`, `@font-face`, `@counter-style`, `@function`) and `$$name(...)` CSS-function calls are highlighted as calls. The v2 camelCase spellings (`@properties`, `@fontFace`, `@counterStyle`) are no longer recognized as at-rules — for tasty v2, pin `cube-dev.tasty-syntax-highlighting@^3`.
+
 ## Features
 
 The extension injects a TextMate grammar that highlights Tasty-specific syntax elements inside style objects:
@@ -10,25 +12,26 @@ The extension injects a TextMate grammar that highlights Tasty-specific syntax e
 - **Custom properties** — `$gap`, `$radius`, `$$property-ref`
 - **Custom units** — `2x`, `1r`, `1.5bw`, `3cr`
 - **Typography presets** — `h1`, `t2`, `t3 / strong`, `italic`
-- **State keys** — `:hover`, `hovered`, `@mobile`, `@media(w < 768px)`
+- **State keys** — `:hover`, `hovered`, `@mobile`, `@media(w < 768px)`, `@parent(hovered, >)`
 - **Logical operators** — `&`, `|`, `^`, `!`
+- **At-rule keys** — `@keyframes`, `@property`, `@font-face`, `@counter-style`, `@function`, `@starting`
+- **CSS `@function` calls** — `$$negative(10px)`, `$$shadow(#accent)`
 - **CSS functions** — `rgb()`, `calc()`, `url()`, etc.
 - **Style property names** — `fill`, `radius`, `flow`, `preset`, etc.
+- **Modifiers** — `top`, `bottom-right`, `dock`, `longhand`, `leaf`, `thin`
 
 ### Supported contexts
 
 The grammar recognizes Tasty styles in:
 
-- `tasty()` and `tastyStatic()` function calls
-- `styles: { ... }` and `variants: { ... }` object properties
+- `styles: { ... }` object properties — which covers `tasty()`, `tastyStatic()`, and `useStyles()` calls
+- Object properties whose name ends in `Styles` (`overlayStyles: { ... }`)
 - Variables ending with `Styles` or `Tokens`
 - Variables typed as `Styles`
-- JSX inline styles `{{ ... }}`
-- JSX style props (`gap="2x"`, `fill="#primary"`)
 
 ## Validation & Linting
 
-For style validation, use the **[@tenphi/tasty-eslint-plugin](https://www.npmjs.com/package/@tenphi/tasty-eslint-plugin)** ESLint plugin. It provides 27 rules covering property validation, value syntax checking, token existence, state key validation, and best practices enforcement — all runnable in your editor and CI.
+For style validation, use the **[@tenphi/eslint-plugin-tasty](https://www.npmjs.com/package/@tenphi/eslint-plugin-tasty)** ESLint plugin. It covers property validation, value syntax checking, token existence, state key validation, and best practices enforcement — all runnable in your editor and CI. It also auto-fixes the v2 at-rule key spellings, so `eslint --fix` handles most of a v3 upgrade.
 
 ## Autocomplete
 
