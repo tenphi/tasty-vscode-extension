@@ -37,7 +37,7 @@
     "eslint": "10.11.0",
     "prettier": "3.9.8",
     "typescript": "7.0.2",
-    "@types/node": "22.20.4",
+    "@types/node": "26.6.2",
     "vscode-textmate": "9.3.2",
     "vscode-oniguruma": "2.0.1",
     "globals": "17.12.0"
