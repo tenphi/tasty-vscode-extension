@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
   "name": "Tasty",
   "scopeName": "source.tasty",
-  "injectionSelector": "L:source.tsx -comment, L:source.ts -comment, L:source.js -comment, L:source.jsx -comment",
+  "injectionSelector": "L:source.tsx -comment -string -meta.embedded.block.tasty, L:source.tsx meta.template.expression -comment -string.quoted -string.regexp -meta.embedded.block.tasty, L:source.ts -comment -string -meta.embedded.block.tasty, L:source.ts meta.template.expression -comment -string.quoted -string.regexp -meta.embedded.block.tasty, L:source.js -comment -string -meta.embedded.block.tasty, L:source.js meta.template.expression -comment -string.quoted -string.regexp -meta.embedded.block.tasty, L:source.jsx -comment -string -meta.embedded.block.tasty, L:source.jsx meta.template.expression -comment -string.quoted -string.regexp -meta.embedded.block.tasty",
   "patterns": [
     {
       "include": "#tasty-styles"
@@ -13,16 +13,16 @@
       "patterns": [
         {
           "name": "meta.tasty-styles.variable.tsx",
-          "comment": "Match variables ending with Styles/Tokens, with optional Styles/Tokens type annotation",
-          "begin": "(?:\\b(?:export)\\s+)?\\b(const|let|var)\\s+(\\w*(?:[Ss][Tt][Yy][Ll][Ee][Ss]|[Tt][Oo][Kk][Ee][Nn][Ss]))(?:\\s*:\\s*[\\w.]*?(?:Styles|Tokens)(?:\\s*<[^>]+>)?(?:\\s*\\[\\])?)?\\s*=\\s*\\{",
-          "end": "\\}",
-          "contentName": "meta.embedded.block.tasty",
+          "comment": "Named style/token variables, including an object literal on the next line.",
+          "begin": "\\b(const|let|var)\\s+([\\w$]*(?i:styles|tokens))(?:\\s*:\\s*[\\w.]*?(?:Styles|Tokens))?\\s*=(?=[ \\t]*(?:\\{|$))",
+          "end": "(?<=\\})|(?=\\S)",
+          "applyEndPatternLast": true,
           "beginCaptures": {
             "1": {
               "name": "storage.type.tsx"
             },
             "2": {
-              "name": "entity.name.tag.tsx"
+              "name": "variable.other.constant.tsx"
             }
           },
           "patterns": [
@@ -30,30 +30,16 @@
               "include": "#comments"
             },
             {
-              "include": "#template-strings"
-            },
-            {
-              "include": "#tasty-object-property"
-            },
-            {
               "include": "#tasty-nested-object"
-            },
-            {
-              "match": ",",
-              "name": "punctuation.separator.comma.tsx"
-            },
-            {
-              "match": "\\s+",
-              "name": "source.tsx"
             }
           ]
         },
         {
           "name": "meta.tasty-styles.typed.tsx",
-          "comment": "Match variables with explicit Styles type annotation (e.g., const foo: Styles = { ... })",
-          "begin": "(?:\\b(?:export)\\s+)?\\b(const|let|var)\\s+(\\w+)\\s*:\\s*(Styles)\\s*=\\s*\\{",
-          "end": "\\}",
-          "contentName": "meta.embedded.block.tasty",
+          "comment": "Explicit Styles annotation, including namespace-qualified types.",
+          "begin": "\\b(const|let|var)\\s+([\\w$]+)\\s*:\\s*([\\w.]*Styles)\\s*=(?=[ \\t]*(?:\\{|$))",
+          "end": "(?<=\\})|(?=\\S)",
+          "applyEndPatternLast": true,
           "beginCaptures": {
             "1": {
               "name": "storage.type.tsx"
@@ -70,33 +56,22 @@
               "include": "#comments"
             },
             {
-              "include": "#template-strings"
-            },
-            {
-              "include": "#tasty-object-property"
-            },
-            {
               "include": "#tasty-nested-object"
-            },
-            {
-              "match": ",",
-              "name": "punctuation.separator.comma.tsx"
-            },
-            {
-              "match": "\\s+",
-              "name": "source.tsx"
             }
           ]
         },
         {
-          "name": "meta.tasty-styles.tsx",
-          "comment": "Match object properties (styles: { ... }). Does not match JSX attribute styles={...} to avoid breaking when styles are a predefined object reference.",
-          "begin": "\\b(styles|\\w*[Ss]tyles)\\s*:\\s*\\{",
-          "end": "\\}",
-          "contentName": "meta.embedded.block.tasty",
+          "name": "meta.tasty-styles.satisfies.tsx",
+          "comment": "Single-line satisfies Styles literals; multiline forms require a named Styles variable or a type annotation.",
+          "begin": "\\b(const|let|var)\\s+([\\w$]+)\\s*=(?=[ \\t]*(?<tastyObject>\\{(?>[^{}'\"`/]|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|`(?:\\\\.|[^`\\\\])*`|/\\*(?:[^*]|\\*(?!/))*\\*/|//[^\\n]*|/(?![/*])(?:\\\\.|\\[(?:\\\\.|[^\\]\\\\])*\\]|[^/\\\\\\[\\n])*/[a-z]*|/(?![/*])|\\g<tastyObject>)*\\})\\s*(?:as\\s+const\\s+)?satisfies\\s+[\\w.]*Styles\\b)",
+          "end": "(?<=\\})|(?=\\S)",
+          "applyEndPatternLast": true,
           "beginCaptures": {
             "1": {
-              "name": "entity.name.tag.tsx"
+              "name": "storage.type.tsx"
+            },
+            "2": {
+              "name": "variable.other.constant.tsx"
             }
           },
           "patterns": [
@@ -104,21 +79,121 @@
               "include": "#comments"
             },
             {
-              "include": "#template-strings"
+              "include": "#tasty-nested-object"
+            }
+          ]
+        },
+        {
+          "name": "meta.tasty-styles.property.tsx",
+          "comment": "Style object properties, including a literal beginning on the next line.",
+          "begin": "\\b(styles|\\w*[Ss]tyles)\\s*:(?=[ \\t]*(?:\\{|$))",
+          "end": "(?<=\\})|(?=\\S)",
+          "applyEndPatternLast": true,
+          "beginCaptures": {
+            "1": {
+              "name": "support.type.property-name.tasty"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#comments"
             },
             {
-              "include": "#tasty-object-property"
+              "include": "#tasty-nested-object"
+            }
+          ]
+        },
+        {
+          "name": "meta.tasty-styles.call.tsx",
+          "comment": "useStyles accepts a style literal only as its first argument.",
+          "begin": "(?<![\\w$.])\\b(useStyles)\\s*(\\()(?=[ \\t]*(?:\\{|$))",
+          "end": "(?<=\\})|(?=\\S)",
+          "applyEndPatternLast": true,
+          "beginCaptures": {
+            "1": {
+              "name": "entity.name.function.tsx"
+            },
+            "2": {
+              "name": "punctuation.section.arguments.begin.tsx"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#comments"
+            },
+            {
+              "include": "#tasty-nested-object"
+            }
+          ]
+        },
+        {
+          "name": "meta.tasty-styles.call.tsx",
+          "comment": "Direct style function calls. Stop after the style object so options keep their native language scopes.",
+          "begin": "(?<![\\w$.])\\b(useGlobalStyles|tastyStatic)\\s*(\\()",
+          "end": "(?<=\\})|(?=\\))",
+          "beginCaptures": {
+            "1": {
+              "name": "entity.name.function.tsx"
+            },
+            "2": {
+              "name": "punctuation.section.arguments.begin.tsx"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#comments"
             },
             {
               "include": "#tasty-nested-object"
             },
             {
-              "match": ",",
-              "name": "punctuation.separator.comma.tsx"
+              "include": "source.tsx#string"
             },
             {
-              "match": "\\s+",
-              "name": "source.tsx"
+              "include": "source.tsx#function-call"
+            },
+            {
+              "include": "source.tsx#paren-expression"
+            },
+            {
+              "include": "source.tsx#identifiers"
+            },
+            {
+              "match": ",",
+              "name": "punctuation.separator.comma.tsx"
+            }
+          ]
+        },
+        {
+          "name": "meta.tasty-styles.jsx.tsx",
+          "comment": "JSX styles object literals; references retain the host grammar.",
+          "begin": "\\b(styles)\\s*(=)\\s*(\\{)(?=\\s*(?:\\{|$))",
+          "end": "\\}",
+          "beginCaptures": {
+            "1": {
+              "name": "entity.other.attribute-name.tsx"
+            },
+            "2": {
+              "name": "keyword.operator.assignment.tsx"
+            },
+            "3": {
+              "name": "punctuation.section.embedded.begin.tsx"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.embedded.end.tsx"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#comments"
+            },
+            {
+              "include": "#tasty-nested-object"
+            },
+            {
+              "include": "source.tsx"
             }
           ]
         }
@@ -383,7 +458,7 @@
           }
         },
         {
-          "comment": "Quoted CSS @function definition key: '$$negative': — the literal callable name, matching the call site $$negative(...)",
+          "comment": "Quoted CSS @function definition key: '$$negative': \u2014 the literal callable name, matching the call site $$negative(...)",
           "name": "meta.object-property.custom-function.tasty",
           "match": "(['\"`])(\\$\\$[a-zA-Z_][a-zA-Z0-9_-]*)(\\1)\\s*(:)",
           "captures": {
@@ -526,6 +601,9 @@
         {
           "match": "\\s+",
           "name": "source.tsx"
+        },
+        {
+          "include": "source.tsx"
         }
       ]
     },
@@ -537,24 +615,7 @@
           "end": "\\}",
           "patterns": [
             {
-              "include": "#comments"
-            },
-            {
-              "include": "#template-strings"
-            },
-            {
-              "include": "#tasty-object-property"
-            },
-            {
-              "include": "#tasty-nested-object"
-            },
-            {
-              "match": ",",
-              "name": "punctuation.separator.comma.tsx"
-            },
-            {
-              "match": "\\s+",
-              "name": "source.tsx"
+              "include": "#tasty-object-body"
             }
           ]
         }
@@ -602,7 +663,9 @@
             }
           },
           "patterns": [
-            { "include": "#comments" },
+            {
+              "include": "#comments"
+            },
             {
               "include": "#tasty-string-value"
             },
@@ -624,7 +687,7 @@
     "tasty-string-value": {
       "patterns": [
         {
-          "begin": "(['\"`])",
+          "begin": "(`)",
           "end": "\\1",
           "beginCaptures": {
             "1": {
@@ -638,6 +701,45 @@
           },
           "contentName": "meta.embedded.block.tasty",
           "patterns": [
+            {
+              "name": "constant.character.escape.tsx",
+              "match": "\\\\."
+            },
+            {
+              "name": "meta.template.expression.tsx",
+              "begin": "\\$\\{",
+              "end": "\\}",
+              "patterns": [
+                {
+                  "include": "source.tsx"
+                }
+              ],
+              "contentName": "meta.embedded.expression.tasty"
+            },
+            {
+              "include": "#tasty-syntax"
+            }
+          ]
+        },
+        {
+          "begin": "([\\x27\\\"])",
+          "end": "\\1",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.string.begin.tsx"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.definition.string.end.tsx"
+            }
+          },
+          "contentName": "meta.embedded.block.tasty",
+          "patterns": [
+            {
+              "name": "constant.character.escape.tsx",
+              "match": "\\\\."
+            },
             {
               "include": "#tasty-syntax"
             }
@@ -679,6 +781,10 @@
           },
           "contentName": "meta.embedded.block.selector-affix.tasty",
           "patterns": [
+            {
+              "name": "constant.character.escape.tsx",
+              "match": "\\\\."
+            },
             {
               "include": "#selector-affix-syntax"
             }
@@ -833,9 +939,6 @@
     "tasty-syntax": {
       "patterns": [
         {
-          "include": "#comments"
-        },
-        {
           "include": "#custom-properties"
         },
         {
@@ -910,7 +1013,7 @@
       "patterns": [
         {
           "name": "meta.function-call.custom-function.tasty",
-          "comment": "CSS @function call: $$name(...) → --name(...), ##name(...) → --name-color(...). Must precede the bare $$name/##name reference patterns",
+          "comment": "CSS @function call: $$name(...) \u2192 --name(...), ##name(...) \u2192 --name-color(...). Must precede the bare $$name/##name reference patterns",
           "begin": "((?:\\$\\$|##)[a-zA-Z_][a-zA-Z0-9_-]*)\\s*(\\()",
           "end": "\\)",
           "beginCaptures": {
@@ -935,12 +1038,12 @@
         {
           "name": "variable.other.constant.tasty",
           "match": "\\$\\$[a-zA-Z_][a-zA-Z0-9_-]*",
-          "comment": "Property name reference $$name → --name (used in transition, will-change)"
+          "comment": "Property name reference $$name \u2192 --name (used in transition, will-change)"
         },
         {
           "name": "entity.name.type.color.tasty-token",
           "match": "##[a-zA-Z_][a-zA-Z0-9_-]*",
-          "comment": "Color property name reference ##name → --name-color (used in transition)"
+          "comment": "Color property name reference ##name \u2192 --name-color (used in transition)"
         },
         {
           "name": "meta.function-call.color-fallback.tasty",
@@ -1011,9 +1114,19 @@
     "hash-colors": {
       "patterns": [
         {
+          "name": "constant.other.color.hex",
+          "match": "#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})(?![\\w.-])",
+          "captures": {
+            "0": {
+              "name": "constant.other.color.rgb-value"
+            }
+          },
+          "comment": "Standard hex colors"
+        },
+        {
           "name": "entity.name.type.color.tasty-token",
           "match": "##[a-zA-Z_][a-zA-Z0-9_-]*",
-          "comment": "Color property name reference ##name → --name-color (used in transition, will-change)"
+          "comment": "Color property name reference ##name \u2192 --name-color (used in transition, will-change)"
         },
         {
           "name": "entity.name.type.color.tasty-token.builtin",
@@ -1024,16 +1137,6 @@
           "name": "entity.name.type.color.tasty-token",
           "match": "#([a-zA-Z][a-zA-Z0-9_-]*(?:\\.[0-9$][a-zA-Z0-9_-]*)?)",
           "comment": "Tasty color tokens like #primary, #surface, #primary.5, #primary.$opacity"
-        },
-        {
-          "name": "constant.other.color.hex",
-          "match": "#([0-9a-fA-F]{3,8})\\b",
-          "captures": {
-            "0": {
-              "name": "constant.other.color.rgb-value"
-            }
-          },
-          "comment": "Standard hex colors"
         }
       ]
     },
@@ -1041,7 +1144,7 @@
       "patterns": [
         {
           "name": "meta.function-call.css",
-          "begin": "\\b(rgb|rgba|hsl|hsla|hwb|lab|lch|oklab|oklch|color|device-cmyk|gray|color-mix|color-contrast)\\s*(\\()",
+          "begin": "\\b(rgb|rgba|hsl|hsla|hwb|lab|lch|oklab|oklch|color|device-cmyk|gray|color-mix|color-contrast|contrast-color|light-dark)\\s*(\\()",
           "end": "\\)",
           "beginCaptures": {
             "1": {
@@ -1188,7 +1291,11 @@
               "name": "punctuation.section.media-query.end.tasty"
             }
           },
-          "patterns": [{ "include": "#advanced-state-inner" }]
+          "patterns": [
+            {
+              "include": "#advanced-state-inner"
+            }
+          ]
         },
         {
           "comment": "Advanced @root/@parent/@own/@supports states with parentheses",
@@ -1208,7 +1315,11 @@
               "name": "punctuation.section.advanced-state.end.tasty"
             }
           },
-          "patterns": [{ "include": "#advanced-state-inner" }]
+          "patterns": [
+            {
+              "include": "#advanced-state-inner"
+            }
+          ]
         },
         {
           "comment": "Container query shorthand @(...)",
@@ -1228,7 +1339,11 @@
               "name": "punctuation.section.container-query.end.tasty"
             }
           },
-          "patterns": [{ "include": "#advanced-state-inner" }]
+          "patterns": [
+            {
+              "include": "#advanced-state-inner"
+            }
+          ]
         },
         {
           "comment": "@starting state (no parentheses)",
@@ -1331,7 +1446,11 @@
               "name": "punctuation.section.function.end.css"
             }
           },
-          "patterns": [{ "include": "#pseudo-class-function-content" }]
+          "patterns": [
+            {
+              "include": "#pseudo-class-function-content"
+            }
+          ]
         },
         {
           "comment": "CSS pseudo-classes without function notation: :hover, :focus, etc.",
@@ -1348,7 +1467,7 @@
         },
         {
           "name": "entity.name.tag.class.css",
-          "match": "\\.[a-z][a-z0-9-]+",
+          "match": "\\.[a-zA-Z_-][a-zA-Z0-9_-]*",
           "comment": "CSS class selectors"
         },
         {
@@ -1622,6 +1741,69 @@
       "comment": "Patterns for content inside @media(), @root(), @own(), @supports(), @() parentheses",
       "patterns": [
         {
+          "include": "#strings"
+        },
+        {
+          "comment": "Nested pseudo-class functions",
+          "name": "meta.pseudo-class-function.css",
+          "begin": "(::?)([a-z][a-z0-9-]*)\\s*(\\()",
+          "end": "\\)",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.pseudo-class.css"
+            },
+            "2": {
+              "name": "entity.other.attribute-name.pseudo-class.css"
+            },
+            "3": {
+              "name": "punctuation.section.function.begin.css"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.function.end.css"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#pseudo-class-function-content"
+            }
+          ]
+        },
+        {
+          "comment": "Simple pseudo-classes inside: :hover, :focus",
+          "name": "meta.pseudo-class.css",
+          "match": "(::?)([a-z][a-z0-9-]*)",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.pseudo-class.css"
+            },
+            "2": {
+              "name": "entity.other.attribute-name.pseudo-class.css"
+            }
+          }
+        },
+        {
+          "name": "meta.group.advanced-state.tasty",
+          "begin": "\\(",
+          "end": "\\)",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.section.group.begin.tasty"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.group.end.tasty"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#advanced-state-inner"
+            }
+          ]
+        },
+        {
           "comment": "Comparison operators: <=, >=, <, >, =",
           "name": "keyword.operator.comparison.tasty",
           "match": "<=|>=|<|>|="
@@ -1691,7 +1873,7 @@
         {
           "comment": "Class selector: .active",
           "name": "entity.name.tag.class.css",
-          "match": "\\.[a-z][a-z0-9-]+"
+          "match": "\\.[a-zA-Z_-][a-zA-Z0-9_-]*"
         },
         {
           "comment": "Attribute selector: [attr] or [attr=\"value\"]",
@@ -1712,17 +1894,29 @@
             {
               "match": "([a-zA-Z_][a-zA-Z0-9_-]*)(=)(\"|')([^\"']*)(\\3)",
               "captures": {
-                "1": { "name": "entity.other.attribute-name.tasty" },
-                "2": { "name": "keyword.operator.attribute-selector.tasty" },
-                "3": { "name": "punctuation.definition.string.begin.tasty" },
-                "4": { "name": "string.quoted.attribute-value.tasty" },
-                "5": { "name": "punctuation.definition.string.end.tasty" }
+                "1": {
+                  "name": "entity.other.attribute-name.tasty"
+                },
+                "2": {
+                  "name": "keyword.operator.attribute-selector.tasty"
+                },
+                "3": {
+                  "name": "punctuation.definition.string.begin.tasty"
+                },
+                "4": {
+                  "name": "string.quoted.attribute-value.tasty"
+                },
+                "5": {
+                  "name": "punctuation.definition.string.end.tasty"
+                }
               }
             },
             {
               "match": "([a-zA-Z_][a-zA-Z0-9_-]*)",
               "captures": {
-                "1": { "name": "entity.other.attribute-name.tasty" }
+                "1": {
+                  "name": "entity.other.attribute-name.tasty"
+                }
               }
             }
           ]
@@ -1763,7 +1957,11 @@
               "name": "punctuation.section.function.end.css"
             }
           },
-          "patterns": [{ "include": "#pseudo-class-function-content" }]
+          "patterns": [
+            {
+              "include": "#pseudo-class-function-content"
+            }
+          ]
         },
         {
           "comment": "Simple pseudo-classes inside: :hover, :focus",
@@ -1820,17 +2018,29 @@
             {
               "match": "([a-zA-Z_][a-zA-Z0-9_-]*)(\\*?[~|^$]?=)(\"|')([^\"']*)(\\3)",
               "captures": {
-                "1": { "name": "entity.other.attribute-name.css" },
-                "2": { "name": "keyword.operator.attribute-selector.css" },
-                "3": { "name": "punctuation.definition.string.begin.css" },
-                "4": { "name": "string.quoted.css" },
-                "5": { "name": "punctuation.definition.string.end.css" }
+                "1": {
+                  "name": "entity.other.attribute-name.css"
+                },
+                "2": {
+                  "name": "keyword.operator.attribute-selector.css"
+                },
+                "3": {
+                  "name": "punctuation.definition.string.begin.css"
+                },
+                "4": {
+                  "name": "string.quoted.css"
+                },
+                "5": {
+                  "name": "punctuation.definition.string.end.css"
+                }
               }
             },
             {
               "match": "([a-zA-Z_][a-zA-Z0-9_-]*)",
               "captures": {
-                "1": { "name": "entity.other.attribute-name.css" }
+                "1": {
+                  "name": "entity.other.attribute-name.css"
+                }
               }
             }
           ]
@@ -1849,6 +2059,22 @@
           "comment": "Comma separator",
           "name": "punctuation.separator.list.css",
           "match": ","
+        }
+      ]
+    },
+    "tasty-object-body": {
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#tasty-object-property"
+        },
+        {
+          "include": "#tasty-nested-object"
+        },
+        {
+          "include": "source.tsx"
         }
       ]
     }

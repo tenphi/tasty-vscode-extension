@@ -19,19 +19,28 @@
     "typescript"
   ],
   "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/*.test.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "package": "vsce package"
+    "package": "vsce package",
+    "changeset": "changeset"
   },
   "devDependencies": {
-    "@changesets/changelog-github": "^0.5.1",
-    "@changesets/cli": "^2.29.4",
-    "@eslint/json": "^0.12.0",
-    "@vscode/vsce": "^3.3.2",
-    "eslint": "^9.22.0",
-    "prettier": "^3.5.3"
+    "@changesets/changelog-github": "1.0.1",
+    "@changesets/cli": "3.0.3",
+    "@eslint/json": "2.1.0",
+    "@vscode/vsce": "4.0.0",
+    "@eslint/js": "10.0.1",
+    "eslint": "10.11.0",
+    "prettier": "3.9.8",
+    "typescript": "7.0.2",
+    "@types/node": "22.20.4",
+    "vscode-textmate": "9.3.2",
+    "vscode-oniguruma": "2.0.1",
+    "globals": "17.12.0"
   },
   "contributes": {
     "grammars": [
@@ -42,11 +51,31 @@
           "source.ts",
           "source.tsx",
           "source.js",
-          "source.jsx"
+          "source.jsx",
+          "source.js.jsx"
         ],
         "embeddedLanguages": {
-          "meta.embedded.block.tasty": "css"
+          "meta.embedded.block.tasty": "css",
+          "meta.embedded.expression.tasty": "typescriptreact"
         }
+      }
+    ],
+    "snippets": [
+      {
+        "language": "typescript",
+        "path": "./snippets/tasty.code-snippets"
+      },
+      {
+        "language": "typescriptreact",
+        "path": "./snippets/tasty.code-snippets"
+      },
+      {
+        "language": "javascript",
+        "path": "./snippets/tasty.code-snippets"
+      },
+      {
+        "language": "javascriptreact",
+        "path": "./snippets/tasty.code-snippets"
       }
     ]
   },
@@ -54,5 +83,13 @@
     "type": "git",
     "url": "https://github.com/tenphi/tasty-vscode-extension.git"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "overrides": {
+    "launch-editor": {
+      "shell-quote": "1.11.0"
+    },
+    "typed-rest-client": {
+      "qs": "6.16.0"
+    }
+  }
 }
