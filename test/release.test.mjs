@@ -72,6 +72,10 @@ function setup(t, options = {}) {
           uploadReleaseAsset: async (params) => {
             assert.equal(params.name, 'tasty-syntax-highlighting-4.1.0.vsix');
             assert.equal(params.data.toString(), 'build');
+            assert.equal(
+              params.headers['content-type'],
+              'application/octet-stream',
+            );
             events.push('upload');
             if (failUpload) {
               failUpload = false;
