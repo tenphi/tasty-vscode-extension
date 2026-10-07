@@ -36,7 +36,7 @@
     "@vscode/vsce": "4.0.0",
     "@eslint/js": "10.0.1",
     "eslint": "10.11.0",
-    "prettier": "3.9.8",
+    "prettier": "3.9.9",
     "typescript": "7.0.2",
     "@types/node": "22.20.4",
     "vscode-textmate": "9.3.2",
