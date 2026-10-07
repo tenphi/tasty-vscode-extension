@@ -1,5 +1,17 @@
 # tasty-syntax-highlighting
 
+## 4.1.0
+
+### Minor Changes
+
+- [#10](https://github.com/tenphi/tasty-vscode-extension/pull/10) [`df508cc`](https://github.com/tenphi/tasty-vscode-extension/commit/df508cca682fb504df0393a76f9b5f5a0a383ec3) Thanks [@tenphi](https://github.com/tenphi)! - Highlight direct `useStyles`, `useGlobalStyles`, and `tastyStatic` calls, inline JSX
+  style objects, and multiline style declarations. Add snippets for components,
+  static styles, state maps, and shared configuration.
+
+  Fix highlighting inside unrelated strings and regular expressions, escaped
+  quotes, template expressions, hex colors, single-letter classes, and nested
+  advanced queries. Correct the TypeScript autocomplete setup example.
+
 ## 4.0.0
 
 ### Major Changes
