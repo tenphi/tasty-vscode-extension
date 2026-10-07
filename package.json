@@ -26,7 +26,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "package": "vsce package",
-    "changeset": "changeset"
+    "changeset": "changeset",
+    "version:packages": "changeset version && npm install --package-lock-only --ignore-scripts --offline"
   },
   "devDependencies": {
     "@changesets/changelog-github": "1.0.1",
