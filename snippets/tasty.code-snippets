@@ -1,0 +1,53 @@
+{
+  "Tasty component": {
+    "prefix": "tasty-component",
+    "body": [
+      "const ${1:Button} = tasty({",
+      "  as: '${2:button}',",
+      "  styles: {",
+      "    padding: '${3:1x 2x}',",
+      "    fill: '${4:#primary}',",
+      "    $0",
+      "  },",
+      "});"
+    ],
+    "description": "Create a Tasty component (requires a tasty import)."
+  },
+  "Tasty static styles": {
+    "prefix": "tasty-static",
+    "body": [
+      "const ${1:button} = tastyStatic({",
+      "  padding: '${2:1x 2x}',",
+      "  fill: '${3:#primary}',",
+      "  $0",
+      "});"
+    ],
+    "description": "Create extracted static styles (requires tastyStatic from @tenphi/tasty/static)."
+  },
+  "Tasty state map": {
+    "prefix": "tasty-state-map",
+    "body": [
+      "{",
+      "  '': '${1:#primary}',",
+      "  '${2:hovered}': '${3:#accent}',",
+      "  $0",
+      "}"
+    ],
+    "description": "Create a state map; later matching branches win."
+  },
+  "Tasty configuration": {
+    "prefix": "tasty-configure",
+    "body": [
+      "configure({",
+      "  states: {",
+      "    '@mobile': '@media(w < ${1:768px})',",
+      "  },",
+      "  tokens: {",
+      "    '#primary': '${2:royalblue}',",
+      "  },",
+      "  $0",
+      "});"
+    ],
+    "description": "Configure shared state aliases and tokens (requires a configure import)."
+  }
+}

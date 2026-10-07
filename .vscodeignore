@@ -2,3 +2,14 @@
 .gitignore
 .cursor/
 .DS_Store
+.github/
+.changeset/
+.prettierignore
+.prettierrc
+eslint.config.mjs
+tsconfig.json
+test/
+scripts/
+node_modules/
+package-lock.json
+CONTRIBUTING.md
