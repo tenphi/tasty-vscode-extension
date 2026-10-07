@@ -52,6 +52,8 @@ held until it matures. Reconsider both overrides during future dependency work.
 ## GitHub releases
 
 The release workflow opens a Changesets version PR after feature changes merge.
+Its version command synchronizes the lockfile offline without resolving new
+dependency versions.
 Merge that PR to build a VSIX and publish it as a downloadable GitHub release
 asset. PR CI also provides a VSIX artifact for review.
 
