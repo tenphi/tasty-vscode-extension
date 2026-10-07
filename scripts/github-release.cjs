@@ -13,7 +13,7 @@ const { join } = require('node:path');
  *   listReleases: unknown,
  *   listReleaseAssets: unknown,
  *   deleteReleaseAsset(params: Repo & { asset_id: number }): Promise<unknown>,
- *   uploadReleaseAsset(params: Repo & { release_id: number, name: string, data: Buffer }): Promise<unknown>
+ *   uploadReleaseAsset(params: Repo & { release_id: number, name: string, data: Buffer, headers: { 'content-type': string } }): Promise<unknown>
  * } }} rest
  * @property {(method: unknown, params: Repo & { release_id?: number }) => Promise<unknown[]>} paginate
  */
@@ -90,6 +90,7 @@ module.exports = async function release(
       release_id: release.id,
       name,
       data,
+      headers: { 'content-type': 'application/octet-stream' },
     });
     core.info(`Uploaded ${name}`);
   }
